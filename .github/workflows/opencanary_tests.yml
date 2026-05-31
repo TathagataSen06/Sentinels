@@ -1,0 +1,46 @@
+name: OpenCanary Tests
+
+on:
+  - "push"
+
+jobs:
+  precommit_tests:
+    runs-on: "ubuntu-22.04"
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v6"
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+      - name: Install pre-commit
+        run: pip install pre-commit
+      - name: Check pre-commit is happy
+        run: pre-commit run --all-files
+  opencanary_tests:
+    env:
+      UV_SYSTEM_PYTHON: 1
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        os: ["ubuntu-22.04", "ubuntu-24.04", "macos-14", "macos-15", "macos-26"]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v6"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+      - name: Set up Python
+        run: uv python install
+      - name: Install OpenCanary
+        run: uv sync --locked --dev
+      - name: Copy config file
+        run: cp opencanary/test/opencanary.conf .
+      - name: Start OpenCanary
+        run: uv run opencanaryd --start
+      - name: Run Pytest
+        run: uv run pytest -s
