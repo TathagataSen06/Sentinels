@@ -1,7 +1,7 @@
-recursive-include opencanary/data *
-recursive-include opencanary/modules/data *
+recursive-include sentinels/data *
+recursive-include sentinels/modules/data *
 
-recursive-exclude opencanary/test *
+recursive-exclude sentinels/test *
 recursive-exclude .github *
 recursive-exclude docs *
 

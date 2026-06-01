@@ -3,9 +3,9 @@ requires = ["setuptools>=78.1.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "opencanary"
+name = "sentinels"
 dynamic = ["version"]
-description = "OpenCanary daemon"
+description = "Sentinels daemon"
 readme = "README.md"
 license = { text = "BSD" }
 authors = [
@@ -54,9 +54,9 @@ dependencies = [
 
 [project.urls]
 Homepage = "http://www.thinkst.com/"
-"Bug Tracker" = "https://github.com/thinkst/opencanary/issues"
-Documentation = "https://github.com/thinkst/opencanary#readme"
-"Source Code" = "https://github.com/thinkst/opencanary"
+"Bug Tracker" = "https://github.com/thinkst/sentinels/issues"
+Documentation = "https://github.com/thinkst/sentinels#readme"
+"Source Code" = "https://github.com/thinkst/sentinels"
 
 [project.optional-dependencies]
 required-for-snmp = [
@@ -66,13 +66,13 @@ required-for-snmp = [
 
 [tool.setuptools]
 include-package-data = true
-script-files = ["bin/opencanaryd", "bin/opencanary.tac"]
+script-files = ["bin/sentinelsd", "bin/sentinels.tac"]
 
 [tool.setuptools.dynamic]
-version = { attr = "opencanary.__version__" }
+version = { attr = "sentinels.__version__" }
 
 [tool.setuptools.packages.find]
-exclude = ["docs", "docs*", "opencanary.test", "opencanary.test*"]
+exclude = ["docs", "docs*", "sentinels.test", "sentinels.test*"]
 
 [dependency-groups]
 dev = [

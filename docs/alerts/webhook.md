@@ -1,9 +1,9 @@
 # HTTP Webhook Alerts
-OpenCanary includes a customizable Webhook logging handler to send data to an HTTP endpoint. The handler has a few defaults for a basic configuration but is flexible enough that it can be customized for advanced usage.
+Sentinels includes a customizable Webhook logging handler to send data to an HTTP endpoint. The handler has a few defaults for a basic configuration but is flexible enough that it can be customized for advanced usage.
 
 The following configuration options are required for this handler:
 
-* **class** - Use "opencanary.logger.WebhookHandler".
+* **class** - Use "sentinels.logger.WebhookHandler".
 * **url** - The full URL (`http://domain.example.com/path`) of your HTTP endpoint.
 
 The following configuration options are optional:
@@ -23,7 +23,7 @@ Here is a basic configuration:
 ```json
 "handlers": {
     "Webhook": {
-        "class": "opencanary.logger.WebhookHandler",
+        "class": "sentinels.logger.WebhookHandler",
         "url": "http://domain.example.com/path",
         "method": "POST",
         "data": {"message": "%(message)s"},
@@ -36,7 +36,7 @@ Webhooks can also be configured to post to Slack or Microsoft Teams channels.
 
 In both cases, only the following required configuration options are allowed:
 
-* **class** - Either "opencanary.logger.SlackHandler" or "opencanary.logger.TeamsHandler".
+* **class** - Either "sentinels.logger.SlackHandler" or "sentinels.logger.TeamsHandler".
 * **url** - The full URL of the webhook HTTP endpoint.
 
 **Slack**
@@ -48,7 +48,7 @@ An example of a correctly formatted URL is given below:
 ```json
 "handlers": {
     "slack":{
-        "class":"opencanary.logger.SlackHandler",
+        "class":"sentinels.logger.SlackHandler",
         "webhook_url":"https://hooks.slack.com/services/xxx/xxx/xxx"
     }
 }
@@ -63,7 +63,7 @@ An example of a correctly formatted URL is given below:
 ```json
 "handlers": {
     "teams": {
-        "class": "opencanary.logger.TeamsHandler",
+        "class": "sentinels.logger.TeamsHandler",
         "webhook_url":"https://defaultxxx.ac.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/xxx/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=xxx"
     }
 }
@@ -79,7 +79,7 @@ For example, you can move the message to a nested section of the data payload:
 
 ```json
 "data":{
-    "title": "OpenCanary Alert",
+    "title": "Sentinels Alert",
     "data": {
         "alert": "%(message)s"
     }

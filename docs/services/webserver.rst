@@ -1,7 +1,7 @@
 Linux Web Server
 ================
 
-Inside ~/.opencanary.conf:
+Inside ~/.sentinels.conf:
 
 .. code-block:: json
 
@@ -26,8 +26,8 @@ Inside ~/.opencanary.conf:
     "https.enabled": true,
     "https.port": 443,
     "https.skin": "nasLogin",
-    "https.certificate": "/etc/ssl/opencanary/opencanary.pem",
-    "https.key": "/etc/ssl/opencanary/opencanary.key",
+    "https.certificate": "/etc/ssl/sentinels/sentinels.pem",
+    "https.key": "/etc/ssl/sentinels/sentinels.key",
     "ssh.enabled": true,
     "ssh.port": 8022,
     "ssh.version": "SSH-2.0-OpenSSH_5.1p1 Debian-4",

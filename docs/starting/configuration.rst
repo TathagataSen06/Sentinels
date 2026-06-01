@@ -9,7 +9,7 @@ Services Configuration
 We have gone ahead and listed all the services by their configuration key with a quick description
 of the service and when it alerts.
 
-Currently, OpenCanary supports faking the following services natively:
+Currently, Sentinels supports faking the following services natively:
 
 * `ssh`: a Secure Shell server that alerts on login attempts
 * `ftp` - a File Transfer Protocol server that alerts on login attempts
@@ -38,7 +38,7 @@ You may also want to fiddle with some of our other services which require a bit 
 
 `smb` - a log watcher for Samba logging files which allows Opencanary to alert on files being opened in a Windows File Share.
 
-For this configuration, you will need to set up your own Windows File Share. Please read the steps over `here <https://github.com/thinkst/opencanary/wiki/Opencanary-and-Samba>`_.
+For this configuration, you will need to set up your own Windows File Share. Please read the steps over `here <https://github.com/thinkst/sentinels/wiki/Opencanary-and-Samba>`_.
 
 `portscan` - a log watcher that works with iptables to monitor when your Opencanary is being scanned.
 At this stage, the portscan module supports the detection of Nmap OS, Nmap FIN, Nmap OS, Nmap NULL, and normal port scans.
@@ -59,7 +59,7 @@ add to the `logger` section in your config file,
                     "format": "%(message)s"
                 },
                 "syslog_rfc": {
-                    "format": "opencanaryd[%(process)-5s:%(thread)d]: %(name)s %(levelname)-5s %(message)s"
+                    "format": "sentinelsd[%(process)-5s:%(thread)d]: %(name)s %(levelname)-5s %(message)s"
                 }
             },
             "handlers": {
@@ -69,7 +69,7 @@ add to the `logger` section in your config file,
                 },
                 "file": {
                     "class": "logging.FileHandler",
-                    "filename": "/var/tmp/opencanary.log"
+                    "filename": "/var/tmp/sentinels.log"
                 },
                 "syslog-unix": {
                     "class": "logging.handlers.SysLogHandler",
@@ -81,7 +81,7 @@ add to the `logger` section in your config file,
                     "socktype": "ext://socket.SOCK_DGRAM"
                 },
                 "json-tcp": {
-                    "class": "opencanary.logger.SocketJSONHandler",
+                    "class": "sentinels.logger.SocketJSONHandler",
                     "host": "127.0.0.1",
                     "port": 1514
                 },
@@ -90,18 +90,18 @@ add to the `logger` section in your config file,
                     "mailhost": ["smtp.yourserver.com", 25],
                     "fromaddr": "noreply@yourdomain.com",
                     "toaddrs" : ["youraddress@gmail.com"],
-                    "subject" : "OpenCanary Alert"
+                    "subject" : "Sentinels Alert"
                 },
                 "slack":{
-                    "class":"opencanary.logger.SlackHandler",
+                    "class":"sentinels.logger.SlackHandler",
                     "webhook_url":"https://hooks.slack.com/services/..."
                 },
                 "teams": {
-                    "class": "opencanary.logger.TeamsHandler",
+                    "class": "sentinels.logger.TeamsHandler",
                     "webhook_url":"https://my-organisation.webhook.office.com/webhookb2/..."
                 },
                 "Webhook": {
-                    "class": "opencanary.logger.WebhookHandler",
+                    "class": "sentinels.logger.WebhookHandler",
                     "url": "http://domain.example.com/path",
                     "method": "POST",
                     "data": {"message": "%(message)s"},
@@ -118,8 +118,8 @@ You may want to look through some other python logging options over at `PyLogger
 
 We have provided you with two different formatters. One is the plain message with incident information; the other is the Syslog RFC format. We have already added it to the `syslog-unix` handler for your convenience.
 
-The Twisted Web server `twistd` that OpenCanary uses to provide HTTP services is not affected by these logging options and will log HTTP requests regardless of your configuration, as it is launched with the `--syslog` parameter in `bin/opencanaryd`. This can be undesirable
-in some scenarios like when a SIEM is collecting the syslog *and* a ``RotatingFileHandler`` output by OpenCanary and can be mitigated with an rsyslog config like ``if $programname == 'opencanaryd' and ($msg contains 'GET ' or $msg contains 'POST ') then stop``
+The Twisted Web server `twistd` that Sentinels uses to provide HTTP services is not affected by these logging options and will log HTTP requests regardless of your configuration, as it is launched with the `--syslog` parameter in `bin/sentinelsd`. This can be undesirable
+in some scenarios like when a SIEM is collecting the syslog *and* a ``RotatingFileHandler`` output by Sentinels and can be mitigated with an rsyslog config like ``if $programname == 'sentinelsd' and ($msg contains 'GET ' or $msg contains 'POST ') then stop``
 
 Environment Variables
 ---------------------
@@ -156,7 +156,7 @@ For Docker Compose, you would need to add it to the service definition:
 .. code-block:: yaml
 
     service:
-      opencanary:
+      sentinels:
         image: "..."
         environment:
           - TELNET_PASSWORD
@@ -165,18 +165,18 @@ For Docker Compose, you would need to add it to the service definition:
 Default Configuration
 ---------------------
 
-When you generate the default OpenCanary config file using,
+When you generate the default Sentinels config file using,
 
 .. code-block:: sh
 
-    $ opencanaryd --copyconfig
+    $ sentinelsd --copyconfig
 
-you will receive a json formatted config file at `/etc/opencanary/opencanary.conf` such as the following,
+you will receive a json formatted config file at `/etc/sentinels/sentinels.conf` such as the following,
 
 .. code-block:: json
 
     {
-        "device.node_id": "opencanary-1",
+        "device.node_id": "sentinels-1",
         "ip.ignorelist": [ ],
         "git.enabled": false,
         "git.port" : 9418,
@@ -200,8 +200,8 @@ you will receive a json formatted config file at `/etc/opencanary/opencanary.con
         "https.enabled": false,
         "https.port": 443,
         "https.skin": "nasLogin",
-        "https.certificate": "/etc/ssl/opencanary/opencanary.pem",
-        "https.key": "/etc/ssl/opencanary/opencanary.key",
+        "https.certificate": "/etc/ssl/sentinels/sentinels.pem",
+        "https.key": "/etc/ssl/sentinels/sentinels.key",
         "httpproxy.enabled" : false,
         "httpproxy.port": 8080,
         "httpproxy.skin": "squid",
@@ -230,7 +230,7 @@ you will receive a json formatted config file at `/etc/opencanary/opencanary.con
                     },
                     "file": {
                         "class": "logging.FileHandler",
-                        "filename": "/var/tmp/opencanary.log"
+                        "filename": "/var/tmp/sentinels.log"
                     }
                 }
             }
@@ -304,4 +304,4 @@ These configuration options aren't present in the default config file but may be
 | device.listen_addr     | ""        | Controls which IP interface the Git, RDP, Redis, and VNC modules bind to. |
 +------------------------+-----------+---------------------------------------------------------------------------+
 
-Should you have any other questions regarding configuration or setup, please do not hesitate to contact us on `GitHub <https://github.com/thinkst/opencanary>`_.
+Should you have any other questions regarding configuration or setup, please do not hesitate to contact us on `GitHub <https://github.com/thinkst/sentinels>`_.

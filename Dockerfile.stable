@@ -10,10 +10,10 @@ RUN apt-get update && apt-get -yq install --no-install-recommends \
 	apt-get autoremove -yq && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install pinned release from PyPI with optional dependencies for SNMP/packet capture
-RUN uv pip install --system "opencanary[required-for-snmp]"
+RUN uv pip install --system "sentinels[required-for-snmp]"
 
 # Set the default application we are running
-ENTRYPOINT [ "opencanaryd" ]
+ENTRYPOINT [ "sentinelsd" ]
 
 # Set the default arguments to be used for the entrypoint
 CMD [ "--dev", "--uid=nobody", "--gid=nogroup" ]

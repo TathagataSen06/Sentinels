@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Python script to generate a .plist file that launchctl can use to manage opencanary as a service
+# Python script to generate a .plist file that launchctl can use to manage sentinels as a service
 # as well as bootstrap and bootout scripts to get the service up and running.
 # NOTE: Requires homebrew.
 
@@ -16,29 +16,29 @@ from os import chmod, pardir, path
 from os.path import dirname, join, realpath
 from subprocess import CalledProcessError, check_output
 
-OPENCANARY = "opencanary"
+SENTINELS = "sentinels"
 LAUNCH_DAEMONS_DIR = "/Library/LaunchDaemons"
-DEFAULT_SERVICE_NAME = "com.thinkst.opencanary"
-CONFIG_FILE_BASENAME = "opencanary.conf"
-DEFAULT_CONFIG_DIR = importlib.resources.files(OPENCANARY).joinpath("data")
+DEFAULT_SERVICE_NAME = "com.thinkst.sentinels"
+CONFIG_FILE_BASENAME = "sentinels.conf"
+DEFAULT_CONFIG_DIR = importlib.resources.files(SENTINELS).joinpath("data")
 USER_CONFIG_FILE = DEFAULT_CONFIG_DIR.joinpath("settings.json")
-DEFAULT_CONFIG_FILE = DEFAULT_CONFIG_DIR.joinpath(".opencanary.conf")
+DEFAULT_CONFIG_FILE = DEFAULT_CONFIG_DIR.joinpath(".sentinels.conf")
 
-# opencanary dirs
-OPENCANARY_DIR = realpath(join(dirname(__file__), pardir))
-OPENCANARY_BIN_DIR = join(OPENCANARY_DIR, "bin")
-VENV_DIR = join(OPENCANARY_DIR, "env")
+# sentinels dirs
+SENTINELS_DIR = realpath(join(dirname(__file__), pardir))
+SENTINELS_BIN_DIR = join(SENTINELS_DIR, "bin")
+VENV_DIR = join(SENTINELS_DIR, "env")
 VENV_BIN_DIR = join(VENV_DIR, "bin")
-DEFAULT_LOG_DIR = join(OPENCANARY_DIR, "log")
+DEFAULT_LOG_DIR = join(SENTINELS_DIR, "log")
 
 # daemon config
-DAEMON_CONFIG_DIR = "/etc/opencanaryd"
+DAEMON_CONFIG_DIR = "/etc/sentinelsd"
 DAEMON_CONFIG_PATH = join(DAEMON_CONFIG_DIR, CONFIG_FILE_BASENAME)
-DAEMON_PATH = join(VENV_BIN_DIR, "opencanaryd")
+DAEMON_PATH = join(VENV_BIN_DIR, "sentinelsd")
 DAEMON_RUNTIME_OPTIONS = "--dev"
 
 # This script writes to the launchctl/ folder
-LAUNCHCTL_DIR = join(OPENCANARY_DIR, "launchctl")
+LAUNCHCTL_DIR = join(SENTINELS_DIR, "launchctl")
 
 # Homebrew (TODO: is this necessary?)
 try:
@@ -47,26 +47,26 @@ except CalledProcessError as e:
     print(f"Couldn't get homebrew install location: {e}")
     sys.exit()
 
-# Load opencanary.conf default config
+# Load sentinels.conf default config
 if USER_CONFIG_FILE.exists():
-    opencanary_config_file = USER_CONFIG_FILE
+    sentinels_config_file = USER_CONFIG_FILE
 else:
     if not DEFAULT_CONFIG_FILE.exists():
         print(
-            f"Neither a user 'settings.json' nor a default '.opencanary.conf' found in '{DEFAULT_CONFIG_DIR}'!"
+            f"Neither a user 'settings.json' nor a default '.sentinels.conf' found in '{DEFAULT_CONFIG_DIR}'!"
         )
         print("Exiting...")
         sys.exit()
 
-    opencanary_config_file = DEFAULT_CONFIG_FILE
+    sentinels_config_file = DEFAULT_CONFIG_FILE
     print("Using default config file......")
     print(
         f"(Create a file at '{USER_CONFIG_FILE}' for individual settings beyond the command line arguments)"
     )
 
-print(f"\nUsing base configuration file: '{opencanary_config_file}'")
+print(f"\nUsing base configuration file: '{sentinels_config_file}'")
 
-with importlib.resources.as_file(opencanary_config_file) as config_file:
+with importlib.resources.as_file(sentinels_config_file) as config_file:
     with open(config_file, "r") as file:
         config = json.load(file)
         canaries = [
@@ -76,20 +76,20 @@ with importlib.resources.as_file(opencanary_config_file) as config_file:
 
 # Parse arguments.
 parser = ArgumentParser(
-    description="Generate .plist, opencanary.conf, and scripts to bootstrap opencanary as a launchctl daemon.",
+    description="Generate .plist, sentinels.conf, and scripts to bootstrap sentinels as a launchctl daemon.",
     formatter_class=ArgumentDefaultsHelpFormatter,
 )
 
 parser.add_argument(
     "--service-name",
-    help="string you would like launchctl to use as the name of the opencanary service",
+    help="string you would like launchctl to use as the name of the sentinels service",
     metavar="NAME",
     default=DEFAULT_SERVICE_NAME,
 )
 
 parser.add_argument(
     "--log-output-dir",
-    help="opencanary will write its logs to files in DIR when the service is running",
+    help="sentinels will write its logs to files in DIR when the service is running",
     metavar="DIR",
     default=DEFAULT_LOG_DIR,
 )
@@ -97,7 +97,7 @@ parser.add_argument(
 parser.add_argument(
     "--canary",
     action="append",
-    help="enable canary service in the generated opencanary.conf file "
+    help="enable canary service in the generated sentinels.conf file "
     + "(can be supplied more than once)",
     choices=canaries,
     dest="canaries",
@@ -116,7 +116,7 @@ for dir in [LAUNCHCTL_DIR, args.log_output_dir]:
 # File builders
 build_launchctl_dir_path = partial(join, LAUNCHCTL_DIR)
 build_logfile_name = lambda log_name: join(  # noqa: E731
-    args.log_output_dir, f"opencanary.{log_name}.log"
+    args.log_output_dir, f"sentinels.{log_name}.log"
 )
 
 
@@ -149,7 +149,7 @@ with open(plist_output_file, "wb+") as _plist_file:
     plistlib.dump(plist_contents, _plist_file)
 
 
-# opencanary config
+# sentinels config
 for canary in canaries:
     config[f"{canary}.enabled"] = canary in args.canaries
 

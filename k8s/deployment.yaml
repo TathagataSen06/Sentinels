@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentinels-deployment
+  labels:
+    app: sentinels
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: sentinels
+  template:
+    metadata:
+      labels:
+        app: sentinels
+    spec:
+      containers:
+      - name: sentinels
+        image: thinkst/sentinels:latest
+        ports:
+        - containerPort: 21
+          name: ftp
+        - containerPort: 22
+          name: ssh
+        - containerPort: 23
+          name: telnet
+        - containerPort: 80
+          name: http
+        - containerPort: 445
+          name: smb
+        volumeMounts:
+        - name: sentinels-config
+          mountPath: /root/.sentinels.conf
+          subPath: sentinels.conf
+      volumes:
+      - name: sentinels-config
+        configMap:
+          name: sentinels-configmap
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentinels-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: sentinels
+  ports:
+    - name: ftp
+      protocol: TCP
+      port: 21
+      targetPort: 21
+    - name: ssh
+      protocol: TCP
+      port: 22
+      targetPort: 22
+    - name: telnet
+      protocol: TCP
+      port: 23
+      targetPort: 23
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
+    - name: smb
+      protocol: TCP
+      port: 445
+      targetPort: 445

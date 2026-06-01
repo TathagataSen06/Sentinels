@@ -10,21 +10,21 @@ RUN apt-get update && apt-get -yq install --no-install-recommends \
 	apt-get autoremove -yq && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Create and set the working directory
-WORKDIR /opencanary
+WORKDIR /sentinels
 
 # Use the uv-managed project environment at runtime.
-ENV PATH="/opencanary/.venv/bin:${PATH}"
+ENV PATH="/sentinels/.venv/bin:${PATH}"
 
 # Copy in project files
 COPY pyproject.toml uv.lock README.md ./
-COPY bin /opencanary/bin
-COPY opencanary ./opencanary
+COPY bin /sentinels/bin
+COPY sentinels ./sentinels
 
 # Install dependencies and the package from the uv lockfile
 RUN uv sync --frozen --no-dev --extra required-for-snmp
 
 # Set the default application we are running
-ENTRYPOINT [ "opencanaryd" ]
+ENTRYPOINT [ "sentinelsd" ]
 
 # Set the default arguments to be used for the entrypoint
 CMD [ "--dev", "--uid=nobody", "--gid=nogroup" ]

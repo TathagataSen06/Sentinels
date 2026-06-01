@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Log In - Confluence</title>
+    <style>
+        body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; background: #0052CC; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; color: #333; }
+        .login-container { background: #fff; padding: 40px; border-radius: 3px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 350px; text-align: center; }
+        .logo { font-size: 28px; font-weight: bold; color: #0052CC; margin-bottom: 20px; display: flex; justify-content: center; align-items: center; }
+        .logo svg { width: 32px; height: 32px; margin-right: 10px; fill: #0052CC; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group input { width: 100%; padding: 12px; border: 2px solid #DFE1E6; border-radius: 3px; box-sizing: border-box; font-size: 14px; transition: border-color 0.2s; }
+        .input-group input:focus { border-color: #4C9AFF; outline: none; }
+        .submit-btn { background: #0052CC; color: white; border: none; padding: 12px; border-radius: 3px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .submit-btn:hover { background: #0047B3; }
+        .footer-links { margin-top: 20px; font-size: 14px; }
+        .footer-links a { color: #0052CC; text-decoration: none; }
+        .footer-links a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            Confluence
+        </div>
+        <p style="margin-bottom: 25px; color: #5E6C84; font-size: 14px;">Log in to your account</p>
+        <form action="/dologin.action" method="post">
+            <div class="input-group">
+                <input type="text" id="os_username" name="os_username" placeholder="Email or Username" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="os_password" name="os_password" placeholder="Password" required>
+            </div>
+            <button type="submit" class="submit-btn">Log in</button>
+        </form>
+        <div class="footer-links">
+            <a href="#">Can't log in?</a>
+        </div>
+    </div>
+</body>
+</html>

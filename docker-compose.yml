@@ -5,10 +5,10 @@ x-common: &common
   tmpfs:
     - /run
   volumes:
-    - ./data/.opencanary.conf:/root/.opencanary.conf
+    - ./data/.sentinels.conf:/root/.sentinels.conf
     # uncomment below if running Samba
     # - /var/log/samba-audit.log:/var/log/samba-audit.log
-  image: "opencanary"
+  image: "sentinels"
   network_mode: "host"
   ports:
     # Comment/un-comment the port lines below to disable/enable the services you are using
@@ -48,15 +48,15 @@ x-common: &common
 services:
   latest: # docker-compose up --build -d latest
     <<: *common
-    container_name: opencanary_latest
-    image: thinkst/opencanary
+    container_name: sentinels_latest
+    image: thinkst/sentinels
     build:
       context: .
       dockerfile: Dockerfile.latest
 
   stable: # docker-compose up --build -d stable
     <<: *common
-    container_name: opencanary_stable
+    container_name: sentinels_stable
     build:
       context: .
       dockerfile: Dockerfile.stable

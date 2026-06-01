@@ -2,9 +2,9 @@ Windows Server
 ================
 
 The Samba and RDP modules require an extra installation step. It's a
-good idea to consult the `README <https://github.com/thinkst/opencanary>`_ before trying this out.
+good idea to consult the `README <https://github.com/thinkst/sentinels>`_ before trying this out.
 
-Inside ~/.opencanary.conf:
+Inside ~/.sentinels.conf:
 
 .. code-block:: json
 
@@ -54,7 +54,7 @@ Please note that there are some details in the above config that you would want 
 * path
 
 Of course, you may change other settings as long as the `smbd_audit` logs to the file that your
-OpenCanary daemon is watching (above we set it as `/var/log/samba-audit.log`).
+Sentinels daemon is watching (above we set it as `/var/log/samba-audit.log`).
 
 In the above config, we are relying on Samba using Syslog (rsyslog in newer systems). For our Samba
 to use rsyslog, we will edit the `/etc/rsyslog.conf` file. Below are two lines we add to the bottom,
@@ -65,6 +65,6 @@ to use rsyslog, we will edit the `/etc/rsyslog.conf` file. Below are two lines w
     local7.*            /var/log/samba-audit.log
 
 This will redirect any message of facility local7 to your `/var/log/samba-audit.log` file, which will be
-watched by our OpenCanary daemon.
+watched by our Sentinels daemon.
 
 Please note this is all written up in the GitHub Wiki.

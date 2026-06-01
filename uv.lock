@@ -534,7 +534,7 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/41/d1/9e009e838c11c432053c13fbd5e403d5870507536aa09a3c7718307ab5d4/ntlmlib-0.72.tar.gz", hash = "sha256:6b365027ec3cdaf09421a679a5b2b397a8b41f8adde8dcd88b80e695a8d2e9c2", size = 22570, upload-time = "2016-06-22T20:52:53.205Z" }
 
 [[package]]
-name = "opencanary"
+name = "sentinels"
 source = { editable = "." }
 dependencies = [
     { name = "bcrypt" },

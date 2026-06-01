@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# OpenCanary documentation build configuration file, created by
+# Sentinels documentation build configuration file, created by
 # sphinx-quickstart on Tue Aug  4 11:50:15 2015.
 #
 # This file is execfile()d with the current directory set to its
@@ -49,7 +49,7 @@ source_suffix = {
 master_doc = "index"
 
 # General information about the project.
-project = "OpenCanary"
+project = "Sentinels"
 copyright = '<a class="reference external" target="_blank" href="https://canary.tools">Thinkst Canary</a>'
 author = "Thinkst Applied Research"
 
@@ -203,7 +203,7 @@ html_static_path = ["_static"]
 # html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "OpenCanarydoc"
+htmlhelp_basename = "Sentinelsdoc"
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -224,8 +224,8 @@ latex_elements = {
 latex_documents = [
     (
         master_doc,
-        "OpenCanary.tex",
-        "OpenCanary Documentation",
+        "Sentinels.tex",
+        "Sentinels Documentation",
         "Thinkst Applied Research",
         "manual",
     ),
@@ -256,7 +256,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "opencanary", "OpenCanary Documentation", [author], 1)]
+man_pages = [(master_doc, "sentinels", "Sentinels Documentation", [author], 1)]
 
 # If true, show URL addresses after external links.
 # man_show_urls = False
@@ -270,10 +270,10 @@ man_pages = [(master_doc, "opencanary", "OpenCanary Documentation", [author], 1)
 texinfo_documents = [
     (
         master_doc,
-        "OpenCanary",
-        "OpenCanary Documentation",
+        "Sentinels",
+        "Sentinels Documentation",
         author,
-        "OpenCanary",
+        "Sentinels",
         "One line description of project.",
         "Miscellaneous",
     ),

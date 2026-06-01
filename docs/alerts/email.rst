@@ -1,7 +1,7 @@
 Email Alerts
 ============
 
-To have an OpenCanary daemon directly send email alerts to edit the logger section of the *~/.opencanary.conf*. The file format is JSON.
+To have an Sentinels daemon directly send email alerts to edit the logger section of the *~/.sentinels.conf*. The file format is JSON.
 
 In the configurations below, set these configuration variables:
 
@@ -29,7 +29,7 @@ Send to a Gmail address
                    "mailhost": ["smtp.gmail.com", 25],
                    "fromaddr": "noreply@yourdomain.com",
                    "toaddrs" : ["youraddress@gmail.com"],
-                   "subject" : "OpenCanary Alert"
+                   "subject" : "Sentinels Alert"
                 }
             }
         }
@@ -50,7 +50,7 @@ Depending on your ISP and their outbound spam protection mechanisms, you may nee
                    "mailhost": ["smtp.gmail.com", 587],
                    "fromaddr": "noreply@yourdomain.com",
                    "toaddrs" : ["youraddress@gmail.com"],
-                   "subject" : "OpenCanary Alert",
+                   "subject" : "Sentinels Alert",
                    "credentials" : ["youraddress", "abcdefghijklmnop"],
                    "secure" : []
                 }
@@ -73,7 +73,7 @@ Send with SMTP authentication
                    "mailhost": ["authenticated.mail.server", 25],
                    "fromaddr": "canary@yourdomain.com",
                    "toaddrs" : ["youraddress@yourdomain.com"],
-                   "subject" : "OpenCanary Alert",
+                   "subject" : "Sentinels Alert",
                    "credentials" : ["myusername", "password1"],
 		   "secure" : []
                 }

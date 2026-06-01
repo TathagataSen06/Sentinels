@@ -1,7 +1,7 @@
 MSSQL Server
 ================
 
-Inside ~/.opencanary.conf:
+Inside ~/.sentinels.conf:
 
 .. code-block:: json
 

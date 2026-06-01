@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sentinels-configmap
+data:
+  sentinels.conf: |
+    {
+        "device.node_id": "sentinels-k8s-cluster",
+        "logger": {
+            "class": "PyLogger",
+            "kwargs": {
+                "formatters": {
+                    "plain": {
+                        "format": "%(message)s"
+                    }
+                },
+                "handlers": {
+                    "console": {
+                        "class": "logging.StreamHandler",
+                        "stream": "ext://sys.stdout"
+                    },
+                    "file": {
+                        "class": "logging.FileHandler",
+                        "filename": "/var/log/sentinels.log"
+                    },
+                    "webhook": {
+                        "class": "sentinels.logger.WebhookHandler",
+                        "url": "http://your-siem-or-elk-endpoint.local/logs",
+                        "method": "POST",
+                        "data": {}
+                    }
+                }
+            }
+        },
+        "ftp.enabled": true,
+        "ftp.port": 21,
+        "ftp.banner": "FTP server ready",
+        "ssh.enabled": true,
+        "ssh.port": 22,
+        "ssh.version": "SSH-2.0-OpenSSH_8.2p1 Ubuntu-4ubuntu0.1",
+        "http.enabled": true,
+        "http.port": 80,
+        "http.banner": "Apache/2.4.41 (Ubuntu)",
+        "http.skin": "wordpressLogin",
+        "smb.enabled": true,
+        "smb.auditfile": "/var/log/samba-audit.log"
+    }
