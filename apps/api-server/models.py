@@ -1,62 +1,84 @@
 import uuid
-import datetime
-from sqlalchemy import Column, String, DateTime, ForeignKey, Boolean, JSON
+from datetime import datetime
+from typing import Optional, List, Dict, Any
+
+from sqlalchemy import String, DateTime, ForeignKey, Boolean, JSON
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.sql import func
+
 from database import Base
+
 
 class Tenant(Base):
     __tablename__ = "tenants"
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    name = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    users = relationship("User", back_populates="tenant")
-    sensors = relationship("Sensor", back_populates="tenant")
+    # Relationships
+    users: Mapped[List["User"]] = relationship(back_populates="tenant", cascade="all, delete-orphan")
+    sensors: Mapped[List["Sensor"]] = relationship(back_populates="tenant", cascade="all, delete-orphan")
+    events: Mapped[List["Event"]] = relationship(back_populates="tenant", cascade="all, delete-orphan")
+    deception_assets: Mapped[List["DeceptionAsset"]] = relationship(back_populates="tenant", cascade="all, delete-orphan")
+
 
 class User(Base):
     __tablename__ = "users"
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
-    role = Column(String, default="analyst") # admin, analyst
-    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"))
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
+    hashed_password: Mapped[str] = mapped_column(String, nullable=False)
+    role: Mapped[str] = mapped_column(String, default="analyst") # admin, analyst
+    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id", ondelete="CASCADE"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    tenant = relationship("Tenant", back_populates="users")
+    # Relationships
+    tenant: Mapped["Tenant"] = relationship(back_populates="users")
+
 
 class Sensor(Base):
     __tablename__ = "sensors"
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    name = Column(String, nullable=False)
-    ip_address = Column(String)
-    version = Column(String)
-    status = Column(String, default="offline")
-    last_heartbeat = Column(DateTime)
-    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"))
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    ip_address: Mapped[Optional[str]] = mapped_column(String)
+    version: Mapped[Optional[str]] = mapped_column(String)
+    status: Mapped[str] = mapped_column(String, default="offline")
+    last_heartbeat: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id", ondelete="CASCADE"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    tenant = relationship("Tenant", back_populates="sensors")
-    events = relationship("Event", back_populates="sensor")
+    # Relationships
+    tenant: Mapped["Tenant"] = relationship(back_populates="sensors")
+    events: Mapped[List["Event"]] = relationship(back_populates="sensor", cascade="all, delete-orphan")
+
 
 class Event(Base):
     __tablename__ = "events"
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    sensor_id = Column(UUID(as_uuid=True), ForeignKey("sensors.id"))
-    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"))
-    timestamp = Column(DateTime, default=datetime.datetime.utcnow)
-    payload = Column(JSON, nullable=False)
     
-    sensor = relationship("Sensor", back_populates="events")
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    sensor_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("sensors.id", ondelete="CASCADE"), index=True)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id", ondelete="CASCADE"), index=True)
+    timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
+    payload: Mapped[Dict[str, Any]] = mapped_column(JSON, nullable=False)
+    
+    # Relationships
+    sensor: Mapped["Sensor"] = relationship(back_populates="events")
+    tenant: Mapped["Tenant"] = relationship(back_populates="events")
+
 
 class DeceptionAsset(Base):
     __tablename__ = "deception_assets"
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"))
-    asset_type = Column(String, nullable=False) # e.g., 'credential', 'host', 'aws_key', 'share'
-    name = Column(String, nullable=False)
-    asset_data = Column(JSON, nullable=False) # Store the fake credentials, paths, etc.
-    is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
     
-    tenant = relationship("Tenant")
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id", ondelete="CASCADE"), index=True)
+    asset_type: Mapped[str] = mapped_column(String, nullable=False) # e.g., 'credential', 'host', 'aws_key', 'share'
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    asset_data: Mapped[Dict[str, Any]] = mapped_column(JSON, nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationships
+    tenant: Mapped["Tenant"] = relationship(back_populates="deception_assets")

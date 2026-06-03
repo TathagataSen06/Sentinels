@@ -1,8 +1,9 @@
-from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi import FastAPI, Depends, HTTPException, Request, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from database import engine, Base, get_db
 import models
+import schemas
 from auth import get_current_user, get_current_active_admin
 from prometheus_fastapi_instrumentator import Instrumentator
 import os
@@ -31,11 +32,20 @@ async def startup():
 async def health_check():
     return {"status": "healthy"}
 
-@app.get("/api/v1/sensors")
-async def list_sensors(db: AsyncSession = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-    result = await db.execute(select(models.Sensor).where(models.Sensor.tenant_id == current_user.tenant_id))
+@app.get("/api/v1/sensors", response_model=schemas.PaginatedResponse[schemas.SensorResponse])
+async def list_sensors(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100),
+    db: AsyncSession = Depends(get_db), 
+    current_user: models.User = Depends(get_current_user)
+):
+    query = select(models.Sensor).where(models.Sensor.tenant_id == current_user.tenant_id)
+    total = await db.scalar(select(func.count()).select_from(query.subquery()))
+    
+    result = await db.execute(query.offset(skip).limit(limit))
     sensors = result.scalars().all()
-    return {"sensors": sensors}
+    
+    return schemas.PaginatedResponse(items=sensors, total=total or 0, skip=skip, limit=limit)
 
 @app.post("/api/v1/agent/register")
 async def register_agent(db: AsyncSession = Depends(get_db)):
@@ -55,23 +65,35 @@ async def agent_config(db: AsyncSession = Depends(get_db)):
     assets = result.scalars().all()
     return {"config": {}, "deception_assets": assets}
 
-@app.post("/api/v1/assets")
-async def create_asset(asset_data: dict, db: AsyncSession = Depends(get_db), current_user: models.User = Depends(get_current_active_admin)):
+@app.post("/api/v1/assets", response_model=schemas.DeceptionAssetResponse)
+async def create_asset(
+    asset_data: schemas.DeceptionAssetCreate, 
+    db: AsyncSession = Depends(get_db), 
+    current_user: models.User = Depends(get_current_active_admin)
+):
     new_asset = models.DeceptionAsset(
         tenant_id=current_user.tenant_id,
-        asset_type=asset_data.get("asset_type"),
-        name=asset_data.get("name"),
-        asset_data=asset_data.get("asset_data", {})
+        asset_type=asset_data.asset_type,
+        name=asset_data.name,
+        asset_data=asset_data.asset_data,
+        is_active=asset_data.is_active
     )
     db.add(new_asset)
     await db.commit()
     await db.refresh(new_asset)
     return new_asset
 
-@app.get("/api/v1/assets")
-async def list_assets(db: AsyncSession = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-    result = await db.execute(select(models.DeceptionAsset).where(models.DeceptionAsset.tenant_id == current_user.tenant_id))
+@app.get("/api/v1/assets", response_model=schemas.PaginatedResponse[schemas.DeceptionAssetResponse])
+async def list_assets(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100),
+    db: AsyncSession = Depends(get_db), 
+    current_user: models.User = Depends(get_current_user)
+):
+    query = select(models.DeceptionAsset).where(models.DeceptionAsset.tenant_id == current_user.tenant_id)
+    total = await db.scalar(select(func.count()).select_from(query.subquery()))
+    
+    result = await db.execute(query.offset(skip).limit(limit))
     assets = result.scalars().all()
-    return {"assets": assets}
-
-
+    
+    return schemas.PaginatedResponse(items=assets, total=total or 0, skip=skip, limit=limit)
