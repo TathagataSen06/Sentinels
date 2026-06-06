@@ -5,7 +5,8 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from models import User
+import uuid
+from models import User, Sensor
 from database import get_db
 
 SECRET_KEY = "super-secret-key-for-dev"
@@ -48,3 +49,28 @@ async def get_current_active_admin(current_user: User = Depends(get_current_user
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Not enough permissions")
     return current_user
+
+async def get_current_sensor(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate sensor credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        sensor_id_str: str = payload.get("sub")
+        if sensor_id_str is None:
+            raise credentials_exception
+    except jwt.PyJWTError:
+        raise credentials_exception
+    
+    try:
+        sensor_id = uuid.UUID(sensor_id_str)
+    except ValueError:
+        raise credentials_exception
+
+    result = await db.execute(select(Sensor).where(Sensor.id == sensor_id))
+    sensor = result.scalar_one_or_none()
+    if sensor is None:
+        raise credentials_exception
+    return sensor

@@ -3,10 +3,9 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
-# Install build dependencies
+# Install build dependencies (minimal for this service)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies
@@ -20,11 +19,6 @@ FROM python:3.11-slim
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 WORKDIR /app
-
-# Install only runtime dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq5 \
-    && rm -rf /var/lib/apt/lists/*
 
 # Copy Python packages from builder
 COPY --from=builder /root/.local /home/appuser/.local
@@ -40,12 +34,8 @@ ENV PATH=/home/appuser/.local/bin:$PATH \
 # Switch to non-root user
 USER appuser
 
-# Health check
-HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/health')" || exit 1
+# Expose port (for metrics if added)
+EXPOSE 8001
 
-# Expose port
-EXPOSE 8000
-
-# Run application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run analytics engine
+CMD ["python", "-u", "analytics.py"]

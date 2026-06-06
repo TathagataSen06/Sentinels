@@ -1,9 +1,11 @@
 version: "3.8"
 
 services:
+  # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
     container_name: sentinels-postgres
+    restart: unless-stopped
     environment:
       POSTGRES_USER: sentinels
       POSTGRES_PASSWORD: sentinels_password
@@ -17,57 +19,196 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 10s
+    networks:
+      - sentinels-network
+    resources:
+      limits:
+        cpus: "1"
+        memory: 512M
+      reservations:
+        cpus: "0.5"
+        memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
+  # Redis Cache & Queue
   redis:
     image: redis:7-alpine
     container_name: sentinels-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 5
+      start_period: 10s
+    networks:
+      - sentinels-network
+    resources:
+      limits:
+        cpus: "0.5"
+        memory: 256M
+      reservations:
+        cpus: "0.25"
+        memory: 128M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
+  # FastAPI Server
   api-server:
     build:
-      context: ../../apps/api-server
+      context: ../apps/api-server
       dockerfile: Dockerfile
     container_name: sentinels-api
+    restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
       - DATABASE_URL=postgresql://sentinels:sentinels_password@postgres:5432/sentinels
       - REDIS_URL=redis://redis:6379/0
+      - LOG_LEVEL=INFO
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    volumes:
-      - ../../apps/api-server:/app
+    networks:
+      - sentinels-network
+    resources:
+      limits:
+        cpus: "2"
+        memory: 1G
+      reservations:
+        cpus: "1"
+        memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
+  # Processing Engine (Background Analytics)
+  processing-engine:
+    build:
+      context: ../apps/processing-engine
+      dockerfile: Dockerfile
+    container_name: sentinels-processor
+    restart: unless-stopped
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://sentinels:sentinels_password@postgres:5432/sentinels
+      - LOG_LEVEL=INFO
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - sentinels-network
+    resources:
+      limits:
+        cpus: "1"
+        memory: 512M
+      reservations:
+        cpus: "0.5"
+        memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Prometheus Metrics
   prometheus:
     image: prom/prometheus:v2.45.0
     container_name: sentinels-prometheus
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
     volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
     ports:
       - "9090:9090"
+    networks:
+      - sentinels-network
+    resources:
+      limits:
+        cpus: "0.5"
+        memory: 256M
+      reservations:
+        cpus: "0.25"
+        memory: 128M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
+  # Grafana Dashboards
   grafana:
     image: grafana/grafana:10.1.0
     container_name: sentinels-grafana
-    ports:
-      - "3000:3000"
+    restart: unless-stopped
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_INSTALL_PLUGINS=
+    ports:
+      - "3000:3000"
     volumes:
-      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
-      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
-      - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
     depends_on:
       - prometheus
+    networks:
+      - sentinels-network
+    resources:
+      limits:
+        cpus: "0.5"
+        memory: 256M
+      reservations:
+        cpus: "0.25"
+        memory: 128M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  sentinels-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
 
 volumes:
   postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local

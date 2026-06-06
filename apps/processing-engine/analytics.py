@@ -1,5 +1,9 @@
 import uuid
 import datetime
+import json
+import asyncio
+import os
+import redis.asyncio as redis_async
 from typing import Dict, Any, List, Optional
 from pydantic import BaseModel, Field
 
@@ -55,10 +59,8 @@ PLUGIN_MITRE_MAP = {
 }
 
 class CorrelationEngine:
-    def __init__(self):
-        # In a real system, this would be backed by Redis or Neo4j
-        # We store active campaigns keyed by source_ip
-        self.active_campaigns: Dict[str, Campaign] = {}
+    def __init__(self, redis_client: redis_async.Redis):
+        self.redis = redis_client
         self.correlation_window_minutes = 60
 
     def analyze_event(self, event_data: Dict[str, Any]) -> AnalyzedEvent:
@@ -94,20 +96,25 @@ class CorrelationEngine:
             timestamp=datetime.datetime.utcnow()
         )
 
-    def correlate(self, analyzed_event: AnalyzedEvent) -> Campaign:
+    async def correlate(self, analyzed_event: AnalyzedEvent) -> Campaign:
         """
         Correlates an analyzed event into a campaign based on source IP and time window.
+        Uses Redis to persist state across instances.
         """
         ip = analyzed_event.source_ip
         now = datetime.datetime.utcnow()
-
-        if ip in self.active_campaigns:
-            campaign = self.active_campaigns[ip]
+        redis_key = f"campaign:{ip}"
+        
+        campaign_data = await self.redis.get(redis_key)
+        
+        if campaign_data:
+            campaign = Campaign.model_validate_json(campaign_data)
             # Check if within time window
             if (now - campaign.last_updated).total_seconds() < (self.correlation_window_minutes * 60):
                 campaign.events.append(analyzed_event)
                 campaign.last_updated = now
                 campaign.overall_severity = max(campaign.overall_severity, analyzed_event.severity)
+                await self.redis.set(redis_key, campaign.model_dump_json(), ex=self.correlation_window_minutes * 60 * 2)
                 return campaign
         
         # Create new campaign
@@ -118,5 +125,44 @@ class CorrelationEngine:
             last_updated=now,
             overall_severity=analyzed_event.severity
         )
-        self.active_campaigns[ip] = new_campaign
+        await self.redis.set(redis_key, new_campaign.model_dump_json(), ex=self.correlation_window_minutes * 60 * 2)
         return new_campaign
+
+
+async def run_worker():
+    redis_client = redis_async.Redis(host=os.getenv("REDIS_HOST", "localhost"), port=6379, db=0)
+    engine = CorrelationEngine(redis_client)
+    
+    stream_name = "sentinels_events"
+    group_name = "processing_group"
+    
+    try:
+        await redis_client.xgroup_create(stream_name, group_name, mkstream=True)
+    except Exception as e:
+        # Group might already exist
+        pass
+
+    print("Starting processing engine worker loop...")
+    while True:
+        try:
+            # Read from stream
+            results = await redis_client.xreadgroup(group_name, "worker-1", {stream_name: ">"}, count=10, block=2000)
+            if results:
+                for stream, messages in results:
+                    for message_id, message_data in messages:
+                        event_str = message_data.get(b"event", b"{}").decode("utf-8")
+                        event_data = json.loads(event_str)
+                        
+                        analyzed = engine.analyze_event(event_data)
+                        campaign = await engine.correlate(analyzed)
+                        
+                        print(f"Processed event from {analyzed.source_ip}, Campaign Severity: {campaign.overall_severity}")
+                        
+                        # Acknowledge message
+                        await redis_client.xack(stream_name, group_name, message_id)
+        except Exception as e:
+            print(f"Error processing event: {e}")
+            await asyncio.sleep(2)
+
+if __name__ == "__main__":
+    asyncio.run(run_worker())
