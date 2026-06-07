@@ -280,6 +280,17 @@ Designed for:
 
 ---
 
-# License
+# Why This Project Matters
 
-MIT License
+Sentinels was built to explore the challenges of designing a cloud-native security platform capable of processing high-volume telemetry from distributed deception sensors.
+
+The project combines:
+
+- Distributed systems engineering
+- Stream processing
+- Security engineering
+- Threat intelligence
+- Cloud-native infrastructure
+- Detection and response workflows
+
+into a single end-to-end platform.
