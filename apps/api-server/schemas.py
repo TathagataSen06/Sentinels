@@ -11,6 +11,10 @@ class PaginatedResponse(BaseModel, Generic[T]):
     skip: int
     limit: int
 
+class CursorPaginatedResponse(BaseModel, Generic[T]):
+    items: List[T]
+    next_cursor: Optional[str] = None
+
 class DeceptionAssetBase(BaseModel):
     asset_type: str = Field(..., description="Type of asset, e.g., 'credential', 'host'")
     name: str

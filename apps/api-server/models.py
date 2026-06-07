@@ -2,8 +2,8 @@ import uuid
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 
-from sqlalchemy import String, DateTime, ForeignKey, Boolean, JSON
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import String, DateTime, ForeignKey, Boolean, JSON, Index
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -62,7 +62,11 @@ class Event(Base):
     sensor_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("sensors.id", ondelete="CASCADE"), index=True)
     tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id", ondelete="CASCADE"), index=True)
     timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
-    payload: Mapped[Dict[str, Any]] = mapped_column(JSON, nullable=False)
+    payload: Mapped[Dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    
+    __table_args__ = (
+        Index("ix_events_payload_gin", payload, postgresql_using="gin"),
+    )
     
     # Relationships
     sensor: Mapped["Sensor"] = relationship(back_populates="events")

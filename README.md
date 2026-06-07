@@ -72,7 +72,9 @@ sentinels/
 │   │   ├── models.py           # SQLAlchemy 2.0 DB Models (Tenant, Event, Sensor)
 │   │   ├── schemas.py          # Pydantic validation schemas
 │   │   ├── database.py         # Asyncpg engine configuration
+│   │   ├── auth.py             # Authentication module
 │   │   ├── alembic/            # Database schema migrations
+│   │   ├── Dockerfile          # Containerization for API server
 │   │   └── requirements.txt    # Microservice dependencies
 │   └── processing-engine/      # Background Analytics & Threat Intel Engine
 │       ├── analytics.py        
@@ -81,8 +83,18 @@ sentinels/
 │   ├── docker-compose.yml      # Multi-container orchestration
 │   ├── prometheus/             # Time-series metrics scraping config
 │   └── grafana/                # Pre-built monitoring dashboards
+├── libs/                       # Shared Libraries & Modules
+│   ├── sdk/                    # Sentinels SDK
+│   └── threat-intel/           # Threat Intelligence Providers
+│       ├── provider_base.py    # Base interface for providers
+│       └── providers.py        # Specific threat intel providers
 ├── plugins/                    # Extensible honeypot protocol modules (SSH, HTTP, SMB)
 ├── tools/                      # CLI utilities & setup scripts
+│   └── sentinels-cli/          # Command Line Interface tool
+│       └── main.py
+├── start.sh                    # Helper script to start services
+├── CONTAINERIZATION_SUMMARY.txt # Summary of containerization details
+├── DOCKER_BEST_PRACTICES.md    # Docker best practices guide
 └── README.md
 ```
 
@@ -139,9 +151,3 @@ pip install -r requirements.txt
 # Start the FastAPI server (Requires PostgreSQL on localhost:5432)
 uvicorn main:app --reload
 ```
-
----
-
-## Project Participation
-
-We welcome PRs to this project. Please read our [Code of Conduct](https://github.com/thinkst/.github/blob/master/CODE_OF_CONDUCT.md) and [Contributing](https://github.com/thinkst/.github/blob/master/CONTRIBUTING.md) documents before submitting a pull request. For bug reports or feature requests, please use the GitHub Issues tab.

@@ -39,20 +39,29 @@ async def startup():
 async def health_check():
     return {"status": "healthy"}
 
-@app.get("/api/v1/sensors", response_model=schemas.PaginatedResponse[schemas.SensorResponse])
+@app.get("/api/v1/sensors", response_model=schemas.CursorPaginatedResponse[schemas.SensorResponse])
 async def list_sensors(
-    skip: int = Query(0, ge=0),
+    cursor: str = Query(None, description="Cursor for pagination (ID of last item)"),
     limit: int = Query(10, ge=1, le=100),
     db: AsyncSession = Depends(get_db), 
     current_user: models.User = Depends(get_current_user)
 ):
     query = select(models.Sensor).where(models.Sensor.tenant_id == current_user.tenant_id)
-    total = await db.scalar(select(func.count()).select_from(query.subquery()))
+    if cursor:
+        try:
+            import uuid
+            cursor_uuid = uuid.UUID(cursor)
+            query = query.where(models.Sensor.id > cursor_uuid)
+        except ValueError:
+            pass
     
-    result = await db.execute(query.offset(skip).limit(limit))
+    query = query.order_by(models.Sensor.id).limit(limit)
+    
+    result = await db.execute(query)
     sensors = result.scalars().all()
     
-    return schemas.PaginatedResponse(items=sensors, total=total or 0, skip=skip, limit=limit)
+    next_cursor = str(sensors[-1].id) if len(sensors) == limit else None
+    return schemas.CursorPaginatedResponse(items=sensors, next_cursor=next_cursor)
 
 @app.post("/api/v1/agent/register")
 async def register_agent(db: AsyncSession = Depends(get_db)):
@@ -125,17 +134,26 @@ async def create_asset(
     await db.refresh(new_asset)
     return new_asset
 
-@app.get("/api/v1/assets", response_model=schemas.PaginatedResponse[schemas.DeceptionAssetResponse])
+@app.get("/api/v1/assets", response_model=schemas.CursorPaginatedResponse[schemas.DeceptionAssetResponse])
 async def list_assets(
-    skip: int = Query(0, ge=0),
+    cursor: str = Query(None, description="Cursor for pagination (ID of last item)"),
     limit: int = Query(10, ge=1, le=100),
     db: AsyncSession = Depends(get_db), 
     current_user: models.User = Depends(get_current_user)
 ):
     query = select(models.DeceptionAsset).where(models.DeceptionAsset.tenant_id == current_user.tenant_id)
-    total = await db.scalar(select(func.count()).select_from(query.subquery()))
+    if cursor:
+        try:
+            import uuid
+            cursor_uuid = uuid.UUID(cursor)
+            query = query.where(models.DeceptionAsset.id > cursor_uuid)
+        except ValueError:
+            pass
     
-    result = await db.execute(query.offset(skip).limit(limit))
+    query = query.order_by(models.DeceptionAsset.id).limit(limit)
+    
+    result = await db.execute(query)
     assets = result.scalars().all()
     
-    return schemas.PaginatedResponse(items=assets, total=total or 0, skip=skip, limit=limit)
+    next_cursor = str(assets[-1].id) if len(assets) == limit else None
+    return schemas.CursorPaginatedResponse(items=assets, next_cursor=next_cursor)
