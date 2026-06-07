@@ -1,6 +1,6 @@
 # Sentinels: Advanced Deception Technology Platform
 
-<img src="https://raw.githubusercontent.com/thinkst/sentinels/master/docs/logo.png" width="50" style="float: left"> 
+<img src="./download.jpeg" width="50" style="float: left"> 
 **Sentinels** is a modern, distributed, multi-protocol network honeypot and threat intelligence platform. Built for scale and low latency, its primary use-case is to catch malicious actors *after* they've breached non-public networks by deploying deceptive assets and services.
 
 [![Python Version](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/downloads/)
