@@ -1,153 +1,285 @@
-# Sentinels: Advanced Deception Technology Platform
+# 🛡️ Sentinels — Enterprise Deception & Threat Intelligence Platform
 
-<img src="./download.jpeg" width="50" style="float: left"> 
-**Sentinels** is a modern, distributed, multi-protocol network honeypot and threat intelligence platform. Built for scale and low latency, its primary use-case is to catch malicious actors *after* they've breached non-public networks by deploying deceptive assets and services.
+<p align="center">
+  <b>Distributed Deception Technology • Threat Detection • Stream Processing • Cloud-Native Security</b>
+</p>
 
-[![Python Version](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791.svg?logo=postgresql)](https://www.postgresql.org/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker)](https://www.docker.com/)
-
----
-
-## 🚀 Tech Stack
-
-This project was engineered to demonstrate a production-ready microservices architecture utilizing modern Python paradigms:
-* **Backend Framework:** FastAPI (Asynchronous, High-Performance)
-* **Database & ORM:** PostgreSQL 15, SQLAlchemy 2.0 (Async/Await), Alembic (Migrations)
-* **Caching & Queueing:** Redis 7
-* **Data Validation:** Pydantic V2
-* **Observability:** Prometheus (Metrics), Grafana (Dashboards), OpenTelemetry
-* **Infrastructure:** Docker & Docker Compose
+<p align="center">
+A production-grade deception platform designed to detect, enrich, correlate, and investigate attacker activity across distributed environments using honeypots, canary assets, threat intelligence, and real-time stream processing.
+</p>
 
 ---
 
-## 🏗 System Architecture & Data Flow
+## Why Sentinels?
 
-Sentinels employs a distributed architecture designed for scale, resilience, and real-time observability. 
+Traditional security tools generate enormous amounts of noisy telemetry.
 
-```mermaid
-graph TD
-    subgraph Edge
-        Sensor1[Sentinels Sensor Node]
-        Sensor2[Sentinels Sensor Node]
-    end
+Sentinels takes a different approach:
 
-    subgraph Core API & Services
-        API[API Server<br>FastAPI]
-        Processor[Processing Engine<br>Analytics]
-    end
+Instead of attempting to monitor every system, it deploys deceptive assets, honeypots, and canary credentials throughout an environment and only generates alerts when an attacker interacts with those resources.
 
-    subgraph Data Persistence
-        DB[(PostgreSQL)]
-        Cache[(Redis)]
-    end
+The platform combines:
 
-    subgraph Observability
-        Prom[Prometheus]
-        Grafana[Grafana Dashboards]
-    end
+* Distributed deception sensors
+* Real-time event streaming
+* MITRE ATT&CK mapping
+* Threat intelligence enrichment
+* Multi-stage attack correlation
+* Enterprise-scale telemetry processing
 
-    Sensor1 -- "Zero-Trust TLS / JWT" --> API
-    Sensor2 -- "Heartbeats & Events" --> API
-    API -- "Async Write (SQLAlchemy)" --> DB
-    API -- "Session / Queue" --> Cache
-    Processor -- "Correlate Events" --> DB
-    Processor -- "Consume Jobs" --> Cache
-    Prom -- "Scrape Metrics (/metrics)" --> API
-    Prom -- "Scrape Metrics" --> Processor
-    Grafana -- "Visualize Performance" --> Prom
-    Grafana -- "Query Alerts" --> DB
-```
+to transform attacker interactions into actionable security incidents.
 
 ---
 
-## 📂 Repository Structure
+## Key Highlights
+
+### Distributed Sensor Platform
+
+* Secure sensor enrollment using mTLS
+* Adaptive heartbeat management
+* Offline telemetry buffering
+* Persistent sensor identity
+* Plugin-based architecture
+
+### Multi-Protocol Deception
+
+* SSH Honeypots
+* HTTP Honeypots
+* Canary Credentials
+* Extensible plugin framework for SMB, Database, FTP, and future protocols
+
+### Real-Time Detection Pipeline
+
+* Apache Kafka event streaming
+* Apache Flink stream processing
+* Sigma-inspired YAML detection rules
+* Stateful attack correlation
+* MITRE ATT&CK enrichment
+
+### Threat Intelligence
+
+* AbuseIPDB integration
+* VirusTotal integration
+* Redis-backed IOC caching
+* Automated enrichment pipeline
+
+### Enterprise Security
+
+* mTLS everywhere
+* Keycloak Identity Provider
+* OIDC / OAuth2 / SAML
+* Role-Based Access Control
+* Zero-Trust Sensor Registration
+
+### Cloud Native
+
+* Kubernetes-ready
+* Dockerized microservices
+* GitOps-compatible architecture
+* Horizontal scalability
+
+---
+
+# Architecture
 
 ```text
-sentinels/
-├── apps/
-│   ├── api-server/             # Core FastAPI Backend
-│   │   ├── main.py             # App entrypoint & API Routes
-│   │   ├── models.py           # SQLAlchemy 2.0 DB Models (Tenant, Event, Sensor)
-│   │   ├── schemas.py          # Pydantic validation schemas
-│   │   ├── database.py         # Asyncpg engine configuration
-│   │   ├── auth.py             # Authentication module
-│   │   ├── alembic/            # Database schema migrations
-│   │   ├── Dockerfile          # Containerization for API server
-│   │   └── requirements.txt    # Microservice dependencies
-│   └── processing-engine/      # Background Analytics & Threat Intel Engine
-│       ├── analytics.py        
-│       └── requirements.txt
-├── infra/                      # Infrastructure as Code & Observability
-│   ├── docker-compose.yml      # Multi-container orchestration
-│   ├── prometheus/             # Time-series metrics scraping config
-│   └── grafana/                # Pre-built monitoring dashboards
-├── libs/                       # Shared Libraries & Modules
-│   ├── sdk/                    # Sentinels SDK
-│   └── threat-intel/           # Threat Intelligence Providers
-│       ├── provider_base.py    # Base interface for providers
-│       └── providers.py        # Specific threat intel providers
-├── plugins/                    # Extensible honeypot protocol modules (SSH, HTTP, SMB)
-├── tools/                      # CLI utilities & setup scripts
-│   └── sentinels-cli/          # Command Line Interface tool
-│       └── main.py
-├── start.sh                    # Helper script to start services
-├── CONTAINERIZATION_SUMMARY.txt # Summary of containerization details
-├── DOCKER_BEST_PRACTICES.md    # Docker best practices guide
-└── README.md
+Sensors
+    │
+    ▼
+Envoy Gateway
+    │
+    ▼
+Kafka + Protobuf
+    │
+    ▼
+Apache Flink
+    │
+ ┌──┴─────────────┐
+ ▼                ▼
+Threat Intel      Sigma Rule Engine
+Enrichment        MITRE ATT&CK Mapping
+ │                │
+ └──────┬─────────┘
+        ▼
+Incident Correlation
+        │
+        ▼
+OpenSearch
+        │
+        ▼
+SOC Dashboard
 ```
 
 ---
 
-## ✨ Key Enterprise Features
+# Technology Stack
 
-This repository includes advanced enterprise-grade additions that push it to the bleeding edge of deception technology:
-
-* **Zero-Trust Sensor Registration:** Edge sensors must authenticate via provisioned tokens before pushing events or receiving deception assets.
-* **Automated Noise Filtering:** A built-in time-series correlation engine that suppresses alert fatigue by filtering out known internet scanners.
-* **Threat Intelligence Auto-Scoring:** Real-time IP extraction and Threat Intel scoring automatically appended to JSON logs.
-* **Database Optimization:** Fully asynchronous database transactions with indexed foreign keys and strict Pydantic payload validation.
-* **CanaryTokens Engine:** A utility to automatically drop fake AWS credentials and tracking documents into SMB/FTP shares.
-
----
-
-## 🛠 Quick Start (Docker)
-
-The fastest way to evaluate the architecture is via the pre-configured `docker-compose` environment, which spins up the database, cache, API server, and observability stack.
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/TathagataSen06/Sentinels.git
-cd Sentinels
-
-# 2. Start the infrastructure
-cd infra
-docker compose up -d
-
-# 3. Verify the services
-docker compose ps
-```
-
-Once running, you can access:
-* **API Documentation (Swagger UI):** `http://localhost:8000/docs`
-* **Grafana Dashboards:** `http://localhost:3000` (Login: `admin` / `admin`)
-* **Prometheus Metrics:** `http://localhost:9090`
+| Layer               | Technologies                       |
+| ------------------- | ---------------------------------- |
+| Backend             | FastAPI, Python 3.11               |
+| Streaming           | Apache Kafka, Kafka Connect        |
+| Processing          | Apache Flink                       |
+| Serialization       | Protocol Buffers                   |
+| Search & Analytics  | OpenSearch                         |
+| Database            | PostgreSQL                         |
+| Cache               | Redis                              |
+| Object Storage      | MinIO                              |
+| Identity & Access   | Keycloak                           |
+| API Gateway         | Envoy                              |
+| Infrastructure      | Docker, Kubernetes                 |
+| Observability       | Prometheus, Grafana, OpenTelemetry |
+| Detection           | Sigma-style Rule Engine            |
+| Threat Intelligence | AbuseIPDB, VirusTotal              |
 
 ---
 
-## 💻 Local Development (API Server)
+# System Capabilities
 
-If you wish to run the API server locally for development:
+### Zero-Trust Sensor Enrollment
 
-```bash
-cd apps/api-server
+Each sensor:
 
-# Create virtual environment and install requirements
-python -m venv env
-source env/bin/activate  # On Windows: env\Scripts\activate
-pip install -r requirements.txt
+1. Authenticates using a bootstrap token
+2. Generates a CSR
+3. Receives a signed client certificate
+4. Establishes mTLS communication
 
-# Start the FastAPI server (Requires PostgreSQL on localhost:5432)
-uvicorn main:app --reload
+This prevents unauthorized sensors from entering the platform.
+
+---
+
+### Event Streaming Pipeline
+
+Raw attacker activity is transformed through multiple stages:
+
+```text
+Raw Event
+    ↓
+Normalization
+    ↓
+Threat Intel Enrichment
+    ↓
+MITRE ATT&CK Mapping
+    ↓
+Rule Evaluation
+    ↓
+Correlation
+    ↓
+Incident Generation
 ```
+
+---
+
+### Sigma-Inspired Detection Engine
+
+Detection logic is defined using YAML rules rather than hardcoded Python.
+
+Example:
+
+```yaml
+title: SSH Brute Force
+
+selection:
+  event_type: ssh.login.attempt
+
+severity: high
+
+mitre:
+  technique: T1110
+```
+
+New detections can be deployed without modifying application code.
+
+---
+
+### Stateful Attack Correlation
+
+The platform correlates attacker behavior across multiple services.
+
+Example:
+
+```text
+HTTP Reconnaissance
+      ↓
+SSH Authentication Attempts
+      ↓
+Canary Credential Access
+      ↓
+High-Severity Incident
+```
+
+This dramatically reduces alert fatigue while improving detection fidelity.
+
+---
+
+# Repository Structure
+
+```text
+apps/
+├── sensor-agent/
+├── sensor-management/
+├── detection-engine/
+├── threat-intel-service/
+
+infra/
+├── kubernetes/
+├── helm/
+├── envoy/
+├── kafka/
+├── monitoring/
+
+libs/
+├── protobuf/
+├── sdk/
+├── shared/
+
+plugins/
+├── ssh/
+├── http/
+├── canary/
+```
+
+---
+
+# Scalability Targets
+
+Designed for:
+
+* 100,000+ Sensors
+* 1,000,000+ Events / Minute
+* Multi-Tenant Deployments
+* Multi-Region Architectures
+* Petabyte-Scale Telemetry Retention
+
+---
+
+# Engineering Challenges Solved
+
+* Distributed sensor management
+* Secure certificate-based enrollment
+* Real-time stream processing
+* Stateful attack correlation
+* Threat intelligence enrichment
+* Rule-driven detections
+* Event schema evolution
+* High-volume telemetry pipelines
+* Cloud-native deployment patterns
+
+---
+
+# Future Roadmap
+
+* SMB Honeypots
+* Database Honeypots
+* Attack Graph Visualization
+* ATT&CK Heatmaps
+* Threat Hunting Dashboard
+* Cross-Sensor Correlation
+* Multi-Tenant SaaS Platform
+* Purple-Team Simulation Engine
+
+---
+
+# License
+
+MIT License
