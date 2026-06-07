@@ -1,0 +1,130 @@
+repositories:
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
+  - name: strimzi
+    url: https://strimzi.io/charts/
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+  - name: minio
+    url: https://charts.min.io/
+  - name: argoproj
+    url: https://argoproj.github.io/argo-helm
+  - name: hashicorp
+    url: https://helm.releases.hashicorp.com
+  - name: external-secrets
+    url: https://charts.external-secrets.io
+  - name: kyverno
+    url: https://kyverno.github.io/kyverno/
+  - name: vmware-tanzu
+    url: https://vmware-tanzu.github.io/helm-charts
+  - name: open-telemetry
+    url: https://open-telemetry.github.io/opentelemetry-helm-charts
+  - name: grafana
+    url: https://grafana.github.io/helm-charts
+
+releases:
+  # --- GitOps Foundation ---
+  - name: argocd
+    namespace: argocd
+    chart: argoproj/argo-cd
+    version: 5.51.4
+
+  # --- Secrets Management ---
+  - name: vault
+    namespace: vault
+    chart: hashicorp/vault
+    version: 0.27.0
+    values:
+      - server:
+          ha:
+            enabled: true
+            replicas: 3
+  
+  - name: external-secrets
+    namespace: external-secrets
+    chart: external-secrets/external-secrets
+    version: 0.9.9
+
+  # --- Security & Policy ---
+  - name: kyverno
+    namespace: kyverno
+    chart: kyverno/kyverno
+    version: 3.1.4
+    values:
+      - admissionController:
+          replicas: 3
+
+  # --- Backup & DR ---
+  - name: velero
+    namespace: velero
+    chart: vmware-tanzu/velero
+    version: 5.2.2
+    values:
+      - configuration:
+          provider: aws
+          backupStorageLocation:
+            - name: default
+              provider: aws
+              bucket: sentinels-velero-backups
+              config:
+                region: minio
+                s3ForcePathStyle: true
+                s3Url: http://sentinels-minio.sentinels-data.svc.cluster.local:9000
+
+  # --- Data Layer ---
+  - name: sentinels-postgres
+    namespace: sentinels-data
+    chart: bitnami/postgresql-ha
+    version: 14.1.2
+    values:
+      - postgresql:
+          repmgrPassword: "change-me-in-prod"
+          postgresPassword: "change-me-in-prod"
+          password: "change-me-in-prod"
+        pgpool:
+          adminPassword: "change-me-in-prod"
+
+  - name: sentinels-redis
+    namespace: sentinels-data
+    chart: bitnami/redis-cluster
+    version: 9.1.4
+    values:
+      - password: "change-me-in-prod"
+        cluster:
+          nodes: 6
+
+  - name: sentinels-strimzi-operator
+    namespace: sentinels-data
+    chart: strimzi/strimzi-kafka-operator
+    version: 0.38.0
+
+  - name: sentinels-minio
+    namespace: sentinels-data
+    chart: minio/minio
+    version: 5.0.14
+    values:
+      - rootUser: "admin"
+        rootPassword: "change-me-in-prod"
+        mode: distributed
+        replicas: 4
+
+  # --- Observability Layer ---
+  - name: kube-prometheus-stack
+    namespace: sentinels-observability
+    chart: prometheus-community/kube-prometheus-stack
+    version: 55.4.1
+    values:
+      - grafana:
+          adminPassword: "change-me-in-prod"
+
+  - name: tempo
+    namespace: sentinels-observability
+    chart: grafana/tempo
+    version: 1.7.2
+
+  - name: opentelemetry-collector
+    namespace: sentinels-observability
+    chart: open-telemetry/opentelemetry-collector
+    version: 0.76.1
+    values:
+      - mode: deployment

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sentinels-core
+  labels:
+    name: sentinels-core
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sentinels-data
+  labels:
+    name: sentinels-data
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sentinels-observability
+  labels:
+    name: sentinels-observability
