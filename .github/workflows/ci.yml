@@ -30,6 +30,7 @@ jobs:
 
       - name: Build Docker images
         run: |
-          # Add actual docker build commands here
-          echo "Building API server image..."
-          # docker build -t sentinels/api-server apps/api-server/
+          echo "Building Phase 1 API server image..."
+          docker build -t sentinels/sensor-management apps/sensor-management/
+          echo "Building Phase 1 Sensor Agent image..."
+          docker build -t sentinels/sensor-agent apps/sensor-agent/
