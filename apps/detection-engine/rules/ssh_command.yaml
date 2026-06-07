@@ -1,0 +1,20 @@
+id: 8b2d1c9f-3e4a-5b6c-7d8e-9f0a1b2c3d4e
+title: Interactive SSH Shell Command Execution
+description: Detects an attacker executing commands inside the interactive SSH Honeypot shell.
+author: "Sentinels Security Team"
+status: stable
+version: 1.0.0
+logsource:
+    product: ssh.command.executed
+detection:
+    selection:
+        command|contains: "wget"
+    condition: selection
+mitre:
+    tactic: 
+        - Execution
+    technique: 
+        - T1059
+    sub_technique: []
+confidence: 100
+risk_score: 85

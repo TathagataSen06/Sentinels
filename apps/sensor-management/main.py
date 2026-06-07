@@ -12,7 +12,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-from schemas import EnrollmentRequest, EnrollmentResponse, HeartbeatRequest, HeartbeatResponse, RenewalRequest, RenewalResponse
+from schemas import EnrollmentRequest, EnrollmentResponse, HeartbeatRequest, HeartbeatResponse, RenewalRequest, RenewalResponse, AssetReportRequest, AssetReportResponse
 from services.enrollment import process_enrollment, process_renewal
 from services.heartbeat import process_heartbeat
 
@@ -44,14 +44,28 @@ async def renew_sensor(request: RenewalRequest):
 @app.post("/api/v1/sensors/heartbeat", response_model=HeartbeatResponse)
 async def sensor_heartbeat(request: HeartbeatRequest):
     """
-    Process an adaptive heartbeat from a registered sensor.
+    Receive heartbeat from a sensor.
+    Returns the next expected check-in intervals to support adaptive jitter.
     """
     try:
         response = await process_heartbeat(request)
         return response
     except Exception as e:
-        logger.error(f"Heartbeat processing failed: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        logger.error(f"Heartbeat failed: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/v1/assets/report", response_model=AssetReportResponse)
+async def report_asset(request: AssetReportRequest):
+    """
+    Track a deceptive asset (canary token) that was deployed by a sensor.
+    """
+    try:
+        # In a real implementation, write to DB to track the asset
+        logger.info(f"Tracking deployed asset: {request.asset_type} at {request.asset_path} from sensor {request.sensor_uuid}")
+        return AssetReportResponse(status="tracked", asset_id=uuid.uuid4())
+    except Exception as e:
+        logger.error(f"Asset reporting failed: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/health")
 async def health_check():

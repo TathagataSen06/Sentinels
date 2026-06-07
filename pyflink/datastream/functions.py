@@ -1,0 +1,1 @@
+class MapFunction: pass

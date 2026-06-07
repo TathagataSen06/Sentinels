@@ -1,0 +1,129 @@
+version: '3.8'
+
+services:
+  # 1. API Gateway (Envoy/Kong placeholder)
+  api-gateway:
+    image: envoyproxy/envoy:v1.28-latest
+    ports:
+      - "443:443"
+    networks:
+      - sentinels-net
+
+  # 2. Identity & Access Management
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    command: start-dev
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8080:8080"
+    networks:
+      - sentinels-net
+    depends_on:
+      - postgres
+
+  # 3. Message Broker (Kafka KRaft Mode - No ZooKeeper)
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka:9092,CONTROLLER://kafka:29093'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+    ports:
+      - "9092:9092"
+    networks:
+      - sentinels-net
+
+  # 4. Schema Registry
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.5.0
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka:9092'
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+    ports:
+      - "8081:8081"
+    networks:
+      - sentinels-net
+    depends_on:
+      - kafka
+
+  # 5. Stream Processing (Apache Flink)
+  flink-jobmanager:
+    image: flink:1.18.1-python3.11
+    command: jobmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: flink-jobmanager
+    ports:
+      - "8081:8081" # Flink Web UI
+    networks:
+      - sentinels-net
+
+  flink-taskmanager:
+    image: flink:1.18.1-python3.11
+    command: taskmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: flink-jobmanager
+        taskmanager.numberOfTaskSlots: 4
+    networks:
+      - sentinels-net
+    depends_on:
+      - flink-jobmanager
+
+  # 6. High-Speed Cache (Threat Intel)
+  redis:
+    image: redis:7.2-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - sentinels-net
+
+  # 7. Telemetry Search & Analytics
+  opensearch:
+    image: opensearchproject/opensearch:2.11.0
+    environment:
+      - discovery.type=single-node
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=ComplexPassword123!
+    ports:
+      - "9200:9200"
+    networks:
+      - sentinels-net
+
+  # 8. Relational Metadata (Configurations, Tenants)
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: sentinels
+      POSTGRES_PASSWORD: sentinels_password
+      POSTGRES_DB: sentinels_core
+    ports:
+      - "5432:5432"
+    networks:
+      - sentinels-net
+
+  # 9. Cold Storage (S3 Archive)
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: admin_password
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - sentinels-net
+
+networks:
+  sentinels-net:
+    driver: bridge

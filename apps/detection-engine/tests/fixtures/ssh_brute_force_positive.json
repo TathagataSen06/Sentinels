@@ -1,0 +1,12 @@
+{
+    "event_id": "1111-2222-3333-4444",
+    "sensor_uuid": "sensor-01",
+    "tenant_id": "default",
+    "event_type": "ssh.login.attempt",
+    "attacker_ip": "192.168.1.100",
+    "raw_payload": {
+        "src_ip": "192.168.1.100",
+        "username": "root",
+        "password": "password123"
+    }
+}

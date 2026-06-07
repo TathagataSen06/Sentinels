@@ -7,6 +7,10 @@ import httpx
 from core.config import ConfigManager
 from core.delivery import DeliveryModule
 
+from plugins.ssh_honeypot import SSHHoneypotPlugin
+from plugins.http_honeypot import HTTPHoneypotPlugin
+from plugins.canary_credentials import CanaryCredentialsPlugin
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -16,6 +20,7 @@ class SensorAgent:
         self.bootstrap_token = bootstrap_token
         self.config = ConfigManager()
         self.delivery = DeliveryModule(api_url)
+        self.plugins = []
 
     async def generate_csr(self):
         logger.info("Generating RSA Keypair and CSR...")
@@ -54,6 +59,26 @@ class SensorAgent:
                 logger.error(f"Enrollment failed: {e}")
                 raise
 
+    def load_plugins(self):
+        logger.info("Loading Deception Plugins...")
+        
+        # In a real system, configuration would dictate which plugins run
+        ssh_plugin = SSHHoneypotPlugin({"port": 2222}, self.delivery.enqueue_event)
+        http_plugin = HTTPHoneypotPlugin({"port": 8080}, self.delivery.enqueue_event)
+        canary_plugin = CanaryCredentialsPlugin({
+            "aws_keys": True,
+            "ssh_keys": True,
+            "api_url": self.api_url,
+            "sensor_uuid": str(self.config.get("sensor_uuid", "00000000-0000-0000-0000-000000000000"))
+        }, self.delivery.enqueue_event)
+        
+        self.plugins.extend([ssh_plugin, http_plugin, canary_plugin])
+
+    async def start_plugins(self):
+        self.load_plugins()
+        tasks = [plugin.start() for plugin in self.plugins]
+        await asyncio.gather(*tasks)
+
     async def heartbeat_loop(self):
         sensor_uuid = self.config.get("sensor_uuid")
         if not sensor_uuid:
@@ -73,7 +98,7 @@ class SensorAgent:
                 payload = {
                     "sensor_uuid": sensor_uuid,
                     "status": "ONLINE",
-                    "active_honeypots": 3,
+                    "active_honeypots": len([p for p in self.plugins if p.is_running]),
                     "metrics": {"cpu": 12.5, "ram_mb": 256}
                 }
                 
@@ -95,6 +120,7 @@ async def main():
     
     # Run loops concurrently
     await asyncio.gather(
+        agent.start_plugins(),
         agent.heartbeat_loop(),
         agent.delivery.delivery_loop()
     )

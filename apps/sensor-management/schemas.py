@@ -31,6 +31,14 @@ class HeartbeatResponse(BaseModel):
 class RenewalRequest(BaseModel):
     sensor_uuid: uuid.UUID = Field(..., description="Unique identifier of the sensor.")
     csr_pem: str = Field(..., description="PEM-encoded Certificate Signing Request for the new keypair.")
+class AssetReportRequest(BaseModel):
+    sensor_uuid: uuid.UUID = Field(..., description="Unique identifier of the sensor.")
+    asset_type: str = Field(..., description="Type of asset deployed (e.g., AWS_KEY, SSH_KEY).")
+    asset_path: str = Field(..., description="Local path where the asset was deployed.")
+    asset_value: str = Field(..., description="The canary token or identifier inside the asset.")
 
+class AssetReportResponse(BaseModel):
+    status: str = Field("tracked", description="Status of the asset tracking.")
+    asset_id: uuid.UUID = Field(..., description="Global identifier for this deception asset.")
 class RenewalResponse(BaseModel):
     client_certificate_pem: str = Field(..., description="Newly signed client certificate for mTLS.")

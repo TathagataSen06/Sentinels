@@ -1,0 +1,21 @@
+id: 5c6a1e3b-9b4c-4e8d-a0f1-3c7d6e5f4a2b
+title: SSH Honeypot Login Attempt
+description: Detects an attacker attempting to login to the SSH Honeypot.
+author: "Sentinels Security Team"
+status: stable
+version: 1.2.0
+logsource:
+    product: ssh.login.attempt
+detection:
+    selection:
+        username|contains: "root"
+    condition: selection
+mitre:
+    tactic: 
+        - Credential Access
+    technique: 
+        - T1110
+    sub_technique: 
+        - T1110.001
+confidence: 90
+risk_score: 40

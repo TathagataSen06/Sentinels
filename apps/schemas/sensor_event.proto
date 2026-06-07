@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package sentinels.schema;
+
+message SensorEvent {
+    // Unique identifier for the event
+    string event_id = 1;
+    
+    // The UUID of the sensor that generated the event
+    string sensor_uuid = 2;
+    
+    // The type of event (e.g., "ssh.login.attempt", "http.access")
+    string event_type = 3;
+    
+    // Timestamp in ISO-8601 or epoch
+    string timestamp = 4;
+    
+    // The plugin or subsystem that generated the event
+    string source_plugin = 5;
+    
+    // The tenant ID (Multi-tenancy support)
+    string tenant_id = 6;
+    
+    // Dynamic payload, stored as a JSON string to allow flexible schema evolution
+    // while keeping the core envelope strict.
+    string payload_json = 7;
+}
