@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Clock, ShieldAlert, Activity, Globe, Server, Code, FileText, CheckCircle2 } from 'lucide-react';
+import { AlertCorrelationGraph } from '@/components/shared/AlertCorrelationGraph';
 
 export default function IncidentDetails({ params }: { params: { id: string } }) {
   const events = [
@@ -40,7 +41,16 @@ export default function IncidentDetails({ params }: { params: { id: string } }) 
         
         {/* Timeline Column */}
         <div className="xl:col-span-2 space-y-6">
-          <Card className="bg-gray-900 border-gray-800 h-full">
+          <Card className="bg-gray-900 border-gray-800">
+            <CardHeader className="border-b border-gray-800">
+              <CardTitle>Alert Correlation & Attack Path</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 overflow-hidden">
+              <AlertCorrelationGraph />
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gray-900 border-gray-800">
             <CardHeader className="border-b border-gray-800">
               <CardTitle>Attack Timeline</CardTitle>
             </CardHeader>

@@ -1,16 +1,21 @@
+"use client";
+
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Server, Plus, RefreshCw, Power, CheckCircle2, XCircle } from 'lucide-react';
+import { Server, Search, Filter, CheckCircle2, XCircle, Puzzle, Building, RefreshCw, Plus } from 'lucide-react';
 
 export default function SensorManagement() {
+  const [search, setSearch] = useState('');
+
   const sensors = [
-    { id: 'sensor-8402', name: 'eu-west-1a-ssh', type: 'SSH Honeypot', status: 'Active', health: 'Healthy', lastHeartbeat: '12s ago', ip: '10.0.1.20' },
-    { id: 'sensor-1194', name: 'us-east-web', type: 'HTTP Proxy', status: 'Active', health: 'Healthy', lastHeartbeat: '45s ago', ip: '10.0.5.55' },
-    { id: 'sensor-3392', name: 'db-honeypot-01', type: 'PostgreSQL', status: 'Active', health: 'Warning', lastHeartbeat: '2m ago', ip: '10.0.10.15' },
-    { id: 'sensor-9912', name: 'edge-router-sim', type: 'Router Sim', status: 'Offline', health: 'Critical', lastHeartbeat: '1h 45m ago', ip: '192.168.1.1' },
-    { id: 'sensor-4455', name: 'corp-file-share', type: 'SMB Shares', status: 'Pending', health: 'Unknown', lastHeartbeat: 'Never', ip: '10.0.2.100' },
+    { uuid: '128f-49a2-9b2e', name: 'eu-west-1a-ssh', version: 'v2.1.0', tenant: 'Tenant-01', plugins: ['cowrie', 'p0f'], status: 'Active', health: 'Healthy', lastHeartbeat: '12s ago' },
+    { uuid: '55a1-8f2e-11bc', name: 'us-east-web', version: 'v2.1.0', tenant: 'Tenant-01', plugins: ['nginx-honey', 'suricata'], status: 'Active', health: 'Healthy', lastHeartbeat: '45s ago' },
+    { uuid: '992b-11cc-44df', name: 'db-honeypot-01', version: 'v2.0.4', tenant: 'Tenant-02', plugins: ['postgres-sim', 'mysql-sim'], status: 'Active', health: 'Warning', lastHeartbeat: '2m ago' },
+    { uuid: '44fa-22bb-99ee', name: 'edge-router-sim', version: 'v2.1.0', tenant: 'All', plugins: ['cisco-ios'], status: 'Offline', health: 'Critical', lastHeartbeat: '1h 45m ago' },
   ];
 
   return (
@@ -19,7 +24,7 @@ export default function SensorManagement() {
         <div>
           <h2 className="text-3xl font-bold flex items-center gap-3">
             <Server className="text-blue-500" size={32} />
-            Sensor Management
+            Sensor Fleet Management
           </h2>
           <p className="text-gray-400 mt-2">Provision, monitor, and manage deception nodes</p>
         </div>
@@ -29,7 +34,7 @@ export default function SensorManagement() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="bg-gray-900 border-gray-800">
           <CardHeader className="border-b border-gray-800 pb-4">
             <CardTitle className="text-sm text-gray-400 font-medium uppercase tracking-wider">Total Sensors</CardTitle>
@@ -56,59 +61,77 @@ export default function SensorManagement() {
             <XCircle className="text-red-500 opacity-20" size={48} />
           </CardContent>
         </Card>
+        <Card className="bg-gray-900 border-gray-800">
+          <CardHeader className="border-b border-gray-800 pb-4">
+            <CardTitle className="text-sm text-gray-400 font-medium uppercase tracking-wider">Up to Date (v2.1.0)</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <span className="text-4xl font-bold text-blue-500">124</span>
+          </CardContent>
+        </Card>
       </div>
 
       <Card className="flex-1 bg-gray-900 border-gray-800 flex flex-col overflow-hidden">
-        <CardHeader className="border-b border-gray-800">
-          <CardTitle>Sensor Inventory</CardTitle>
+        <CardHeader className="border-b border-gray-800 bg-gray-950 flex flex-row items-center justify-between pb-3">
+          <div className="relative w-72">
+            <Search className="absolute left-3 top-2.5 text-gray-500" size={16} />
+            <Input 
+              placeholder="Search UUID, name, tenant..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 bg-gray-900 border-gray-800 h-9" 
+            />
+          </div>
+          <Button variant="outline" size="sm" className="gap-2 h-9"><Filter size={16}/> Filter</Button>
         </CardHeader>
         <CardContent className="p-0 flex-1 overflow-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Sensor ID</TableHead>
-                <TableHead>Hostname</TableHead>
-                <TableHead>Profile</TableHead>
-                <TableHead>IP Address</TableHead>
+                <TableHead>UUID / Hostname</TableHead>
+                <TableHead>Tenant</TableHead>
+                <TableHead>Version</TableHead>
+                <TableHead>Active Plugins</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Health</TableHead>
                 <TableHead>Last Heartbeat</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sensors.map((sensor) => (
-                <TableRow key={sensor.id}>
-                  <TableCell className="font-mono text-xs text-gray-400">{sensor.id}</TableCell>
-                  <TableCell className="font-semibold">{sensor.name}</TableCell>
-                  <TableCell className="text-gray-300">{sensor.type}</TableCell>
-                  <TableCell className="font-mono text-xs text-gray-400">{sensor.ip}</TableCell>
+                <TableRow key={sensor.uuid}>
                   <TableCell>
-                    <Badge variant={
-                      sensor.status === 'Active' ? 'success' :
-                      sensor.status === 'Offline' ? 'destructive' : 'secondary'
-                    }>
-                      {sensor.status}
+                    <div className="font-semibold text-gray-200">{sensor.name}</div>
+                    <div className="font-mono text-xs text-gray-500">{sensor.uuid}</div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1 text-sm text-gray-400">
+                      <Building size={14} /> {sensor.tenant}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={`font-mono text-[10px] ${sensor.version === 'v2.1.0' ? 'text-green-400 border-green-500/30' : 'text-yellow-400 border-yellow-500/30'}`}>
+                      {sensor.version}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <span className={`text-sm flex items-center gap-2 ${
-                      sensor.health === 'Healthy' ? 'text-green-400' :
-                      sensor.health === 'Warning' ? 'text-yellow-400' :
-                      sensor.health === 'Critical' ? 'text-red-400' : 'text-gray-500'
-                    }`}>
-                      <span className="w-2 h-2 rounded-full bg-current"></span>
-                      {sensor.health}
-                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      {sensor.plugins.map(p => (
+                        <Badge key={p} variant="secondary" className="text-[10px] px-1.5 py-0 h-5 bg-gray-800 text-gray-300 border-gray-700 flex items-center gap-1">
+                          <Puzzle size={10}/> {p}
+                        </Badge>
+                      ))}
+                    </div>
                   </TableCell>
-                  <TableCell className="text-sm text-gray-400">{sensor.lastHeartbeat}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${sensor.health === 'Healthy' ? 'bg-green-500' : sensor.health === 'Warning' ? 'bg-yellow-500' : 'bg-red-500'}`}></span>
+                      <span className="text-sm font-medium">{sensor.status}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-sm text-gray-400 font-mono">{sensor.lastHeartbeat}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" className="text-blue-400 hover:text-blue-300">
-                      Configure
-                    </Button>
-                    <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-300 ml-2">
-                      <Power size={14} />
-                    </Button>
+                    <Button variant="ghost" size="sm" className="text-blue-400 hover:text-blue-300">View Telemetry</Button>
                   </TableCell>
                 </TableRow>
               ))}

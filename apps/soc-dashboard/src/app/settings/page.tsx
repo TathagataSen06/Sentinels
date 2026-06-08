@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Settings, Users, Building2, ShieldCheck, UserPlus, Search, Building } from 'lucide-react';
+import { Settings, Users, Building2, ShieldCheck, UserPlus, Search, Building, Key } from 'lucide-react';
 
 export default function Administration() {
-  const [activeTab, setActiveTab] = useState<'users' | 'orgs' | 'roles'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'orgs' | 'roles' | 'apikeys'>('users');
 
   const users = [
     { name: 'Tathagata Sen', email: 'tsen@sentinels.local', role: 'Global Admin', org: 'All', mfa: true, status: 'Active' },
@@ -49,6 +49,12 @@ export default function Administration() {
         >
           <ShieldCheck size={16} /> Roles & Permissions
         </button>
+        <button 
+          onClick={() => setActiveTab('apikeys')}
+          className={`px-4 py-2 font-medium text-sm flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'apikeys' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-400 hover:text-gray-200'}`}
+        >
+          <Key size={16} /> API Keys
+        </button>
       </div>
 
       <div className="flex-1">
@@ -57,7 +63,7 @@ export default function Administration() {
             <CardHeader className="border-b border-gray-800 flex flex-row items-center justify-between pb-4">
               <div className="relative w-64">
                 <Search className="absolute left-3 top-2.5 text-gray-500" size={16} />
-                <Input placeholder="Search users..." className="pl-9" />
+                <Input placeholder="Search users..." className="pl-9 bg-gray-950 border-gray-800" />
               </div>
               <Button className="bg-blue-600 hover:bg-blue-500 gap-2"><UserPlus size={16} /> Invite User</Button>
             </CardHeader>
@@ -80,7 +86,7 @@ export default function Administration() {
                       <TableCell className="font-semibold">{user.name}</TableCell>
                       <TableCell className="text-gray-400">{user.email}</TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="text-gray-300 gap-1 border-gray-700">
+                        <Badge variant="outline" className="text-gray-300 gap-1 border-gray-700 bg-gray-800">
                           <Building size={12} /> {user.org}
                         </Badge>
                       </TableCell>
@@ -111,7 +117,7 @@ export default function Administration() {
           <Card className="bg-gray-900 border-gray-800 p-8 flex flex-col items-center justify-center text-center h-[400px]">
              <Building2 size={48} className="text-gray-700 mb-4" />
              <h3 className="text-xl font-semibold mb-2">Organization Management</h3>
-             <p className="text-gray-400 max-w-md mb-6">Create and manage multi-tenant environments, configure data boundaries, and set global organization policies.</p>
+             <p className="text-gray-400 max-w-md mb-6">Create and manage strict multi-tenant environments, configure data boundaries, and set global organization policies.</p>
              <Button>Register New Organization</Button>
           </Card>
         )}
@@ -120,8 +126,17 @@ export default function Administration() {
           <Card className="bg-gray-900 border-gray-800 p-8 flex flex-col items-center justify-center text-center h-[400px]">
              <ShieldCheck size={48} className="text-gray-700 mb-4" />
              <h3 className="text-xl font-semibold mb-2">RBAC Configuration</h3>
-             <p className="text-gray-400 max-w-md mb-6">Define custom roles, map permissions to Active Directory groups, and configure resource access policies.</p>
+             <p className="text-gray-400 max-w-md mb-6">Define custom roles (Owner, Admin, Analyst, Viewer), map permissions to IDP groups, and configure resource access policies.</p>
              <Button>Create Custom Role</Button>
+          </Card>
+        )}
+        
+        {activeTab === 'apikeys' && (
+          <Card className="bg-gray-900 border-gray-800 p-8 flex flex-col items-center justify-center text-center h-[400px]">
+             <Key size={48} className="text-gray-700 mb-4" />
+             <h3 className="text-xl font-semibold mb-2">API Key Management</h3>
+             <p className="text-gray-400 max-w-md mb-6">Generate and manage scoped API keys for programmatic access to the Sentinels REST API.</p>
+             <Button>Generate API Key</Button>
           </Card>
         )}
       </div>

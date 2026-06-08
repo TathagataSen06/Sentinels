@@ -6,7 +6,8 @@ import {
   Search, 
   Server, 
   Settings,
-  ShieldAlert
+  ShieldAlert,
+  Globe
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -14,10 +15,12 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   const links = [
-    { href: '/', label: 'Incident Feed', icon: ShieldAlert },
-    { href: '/mitre', label: 'MITRE ATT&CK', icon: Target },
+    { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/incidents', label: 'Incident Management', icon: ShieldAlert },
     { href: '/hunting', label: 'Threat Hunting', icon: Search },
-    { href: '/sensors', label: 'Sensor Management', icon: Server },
+    { href: '/mitre', label: 'MITRE ATT&CK', icon: Target },
+    { href: '/intel', label: 'Threat Intel Center', icon: Globe },
+    { href: '/sensors', label: 'Sensor Fleet', icon: Server },
     { href: '/settings', label: 'Administration', icon: Settings },
   ];
 
