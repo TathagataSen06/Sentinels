@@ -1,40 +1,90 @@
-import { Activity, ShieldAlert, AlertTriangle, KeyRound, Server } from 'lucide-react';
+"use client";
+
+import { useMemo } from 'react';
+import { 
+  ReactFlow, 
+  Background, 
+  Controls, 
+  Edge, 
+  Node, 
+  Position, 
+  MarkerType,
+  Handle
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import { Activity, ShieldAlert, KeyRound, Server, Globe } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+
+// --- Custom Node Definitions ---
+
+const CustomNode = ({ data, icon: Icon, colorClass, bgClass, borderColorClass }: any) => (
+  <div className={`flex flex-col items-center gap-3 w-40 text-center bg-gray-950 p-4 rounded-xl border-2 ${borderColorClass} shadow-xl relative`}>
+    <Handle type="target" position={Position.Left} className="w-2 h-2 bg-gray-500 border-none" />
+    <div className={`p-4 rounded-full border-2 ${borderColorClass} ${bgClass}`}>
+      <Icon size={24} className={colorClass} />
+    </div>
+    <div>
+      <p className="font-semibold text-sm text-gray-200">{data.label}</p>
+      <p className="text-xs text-gray-500 font-mono mt-1">{data.detail}</p>
+      {data.badge && (
+        <Badge variant="outline" className="mt-2 text-[10px] bg-black/40">
+          {data.badge}
+        </Badge>
+      )}
+    </div>
+    <Handle type="source" position={Position.Right} className="w-2 h-2 bg-gray-500 border-none" />
+  </div>
+);
+
+const ThreatActorNode = ({ data }: any) => <CustomNode data={data} icon={Globe} colorClass="text-red-500" bgClass="bg-red-500/10" borderColorClass="border-red-900/50" />;
+const ReconNode = ({ data }: any) => <CustomNode data={data} icon={Activity} colorClass="text-orange-500" bgClass="bg-orange-500/10" borderColorClass="border-orange-900/50" />;
+const CredentialNode = ({ data }: any) => <CustomNode data={data} icon={KeyRound} colorClass="text-yellow-500" bgClass="bg-yellow-500/10" borderColorClass="border-yellow-900/50" />;
+const CommandNode = ({ data }: any) => <CustomNode data={data} icon={Server} colorClass="text-red-500" bgClass="bg-red-500/10" borderColorClass="border-red-900/50" />;
+const IncidentNode = ({ data }: any) => <CustomNode data={data} icon={ShieldAlert} colorClass="text-blue-500" bgClass="bg-blue-500/10" borderColorClass="border-blue-900/50" />;
+
+const nodeTypes = {
+  threatActor: ThreatActorNode,
+  recon: ReconNode,
+  credential: CredentialNode,
+  command: CommandNode,
+  incident: IncidentNode
+};
+
+// --- Mock Graph Data ---
+
+const initialNodes: Node[] = [
+  { id: '1', type: 'threatActor', position: { x: 50, y: 150 }, data: { label: 'Attacker IP', detail: '192.168.1.105', badge: 'Tor Exit Node' } },
+  { id: '2', type: 'recon', position: { x: 300, y: 150 }, data: { label: 'Reconnaissance', detail: 'HTTP Port Scan', badge: 'T1595' } },
+  { id: '3', type: 'credential', position: { x: 550, y: 50 }, data: { label: 'Credential Access', detail: 'SSH Brute Force', badge: 'T1110' } },
+  { id: '4', type: 'credential', position: { x: 550, y: 250 }, data: { label: 'Credential Access', detail: 'Web Login Bypass', badge: 'T1190' } },
+  { id: '5', type: 'command', position: { x: 800, y: 150 }, data: { label: 'Command Execution', detail: 'wget rootkit.sh', badge: 'T1059' } },
+  { id: '6', type: 'incident', position: { x: 1050, y: 150 }, data: { label: 'Incident Triggered', detail: 'INC-2041', badge: 'CRITICAL' } },
+];
+
+const initialEdges: Edge[] = [
+  { id: 'e1-2', source: '1', target: '2', animated: true, style: { stroke: '#ef4444', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#ef4444' } },
+  { id: 'e2-3', source: '2', target: '3', animated: true, style: { stroke: '#f59e0b', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#f59e0b' } },
+  { id: 'e2-4', source: '2', target: '4', animated: true, style: { stroke: '#f59e0b', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#f59e0b' } },
+  { id: 'e3-5', source: '3', target: '5', animated: true, style: { stroke: '#ef4444', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#ef4444' } },
+  { id: 'e4-5', source: '4', target: '5', animated: true, style: { stroke: '#ef4444', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#ef4444' } },
+  { id: 'e5-6', source: '5', target: '6', animated: true, style: { stroke: '#3b82f6', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#3b82f6' } },
+];
 
 export function AlertCorrelationGraph() {
-  const steps = [
-    { icon: Globe, label: 'Attacker IP', detail: '192.168.1.105', color: 'text-red-500', bg: 'bg-red-500/10' },
-    { icon: Activity, label: 'Reconnaissance', detail: 'HTTP Port Scan', color: 'text-orange-500', bg: 'bg-orange-500/10' },
-    { icon: KeyRound, label: 'Credential Access', detail: 'SSH Brute Force', color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
-    { icon: Server, label: 'Command Execution', detail: 'wget rootkit.sh', color: 'text-red-500', bg: 'bg-red-500/10' },
-    { icon: ShieldAlert, label: 'Incident Triggered', detail: 'INC-2041', color: 'text-blue-500', bg: 'bg-blue-500/10' },
-  ];
-
   return (
-    <div className="flex flex-col md:flex-row items-center justify-between w-full px-4 py-8 overflow-x-auto">
-      {steps.map((step, index) => {
-        const Icon = step.icon;
-        return (
-          <div key={index} className="flex items-center">
-            <div className="flex flex-col items-center gap-3 w-32 text-center">
-              <div className={`p-4 rounded-full border-2 border-gray-800 ${step.bg}`}>
-                <Icon size={24} className={step.color} />
-              </div>
-              <div>
-                <p className="font-semibold text-sm text-gray-200">{step.label}</p>
-                <p className="text-xs text-gray-500 font-mono mt-1">{step.detail}</p>
-              </div>
-            </div>
-            {index < steps.length - 1 && (
-              <div className="h-px w-8 md:w-16 bg-gray-700 mx-2 flex-shrink-0 relative">
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 border-t-2 border-r-2 border-gray-700 rotate-45 transform origin-center"></div>
-              </div>
-            )}
-          </div>
-        );
-      })}
+    <div className="w-full h-[400px] border border-gray-800 rounded-xl overflow-hidden bg-gray-950/50">
+      <ReactFlow
+        nodes={initialNodes}
+        edges={initialEdges}
+        nodeTypes={nodeTypes}
+        fitView
+        className="bg-transparent"
+        minZoom={0.5}
+        maxZoom={1.5}
+      >
+        <Background color="#374151" gap={24} />
+        <Controls className="bg-gray-900 border-gray-800 fill-gray-300" />
+      </ReactFlow>
     </div>
   );
 }
-
-// Temporary mock Globe import since it's not exported from lucide-react directly in this scope easily without explicit import
-import { Globe } from 'lucide-react';
