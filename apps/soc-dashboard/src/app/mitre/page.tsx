@@ -1,10 +1,11 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Target, Activity, Shield } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Target, Activity, Shield, ShieldCheck } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer,
-  LineChart, Line, CartesianGrid 
+  LineChart, Line, CartesianGrid, AreaChart, Area
 } from 'recharts';
 
 export default function MitreDashboard() {
@@ -64,8 +65,6 @@ export default function MitreDashboard() {
         { name: "System Information Discovery", score: 70 },
       ]
     }
-    { name: 'Discovery', count: 156 },
-    { name: 'Lateral Movement', count: 23 },
   ];
 
   const coverageData = [

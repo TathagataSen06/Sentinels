@@ -41,8 +41,8 @@ ENV PATH=/home/appuser/.local/bin:$PATH \
 USER appuser
 
 # Health check
-HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/health')" || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:8000/health', timeout=2)" || exit 1
 
 # Expose port
 EXPOSE 8000
