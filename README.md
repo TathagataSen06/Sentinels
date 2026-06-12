@@ -1,75 +1,75 @@
-# 🛡️ Sentinels
+# 🛡️ Sentinels — Enterprise Deception & Threat Intelligence Platform
 
-### Enterprise Deception Technology & Threat Intelligence Platform
+<p align="center">
+  <b>Distributed Deception Technology • SOC Analyst Workflows • MITRE ATT&CK Mapping • Real-Time Stream Processing</b>
+</p>
 
-Distributed deception sensors, real-time stream processing, MITRE ATT&CK correlation, and threat intelligence enrichment for detecting post-compromise attacker activity at scale.
+<p align="center">
+A production-grade deception platform that detects, enriches, correlates, and investigates attacker activity across distributed environments using honeypots, canary assets, threat intelligence, and an interactive SOC dashboard purpose-built for security analysts.
+</p>
 
 ---
 
-## Overview
+## Why Sentinels?
 
-Sentinels is a cloud-native deception platform designed to identify attackers after they gain access to internal environments.
+Traditional security tools generate enormous volumes of noisy telemetry.
 
-Instead of generating massive volumes of noisy telemetry, Sentinels deploys deceptive assets such as honeypots and canary credentials, then focuses on the high-signal interactions that indicate real attacker behavior.
+Sentinels takes a different approach: instead of monitoring every system, it deploys **deceptive assets** — honeypots, canary credentials, and fake services — throughout an environment and **only alerts when an attacker interacts with them**.
 
 The platform combines:
 
-* Distributed deception sensors
-* Real-time event streaming
-* Threat intelligence enrichment
-* Sigma-inspired detection rules
-* MITRE ATT&CK mapping
-* Stateful attack correlation
+* Distributed deception sensors with zero-trust enrollment
+* Real-time event streaming and correlation
+* MITRE ATT&CK mapping across the full kill chain
+* Threat intelligence enrichment (AbuseIPDB, VirusTotal, GreyNoise)
+* An interactive SOC dashboard with attack-chain visualization, threat hunting, and incident investigation
 
-to transform attacker activity into actionable security incidents.
+to transform raw attacker interactions into actionable, correlated security incidents.
 
 ---
 
-## Engineering Highlights
+## SOC Dashboard
 
-### Distributed Systems
+The Sentinels dashboard is a full-featured **Security Operations Center** interface built with Next.js 16, React 19, and Tailwind CSS. It is designed to be demonstrated to recruiters, engineers, judges, and security professionals within 2–3 minutes.
 
-* Event-driven architecture using Apache Kafka
-* Stateful stream processing with Apache Flink
-* Protocol Buffers for schema-driven telemetry
-* Horizontally scalable sensor infrastructure
+### Pages & Features
 
-### Security Engineering
+| Page | Description |
+|---|---|
+| **Global Dashboard** | Real-time KPIs (active incidents, events/min, sensor count), incident trend charts, and a live WebSocket activity stream |
+| **Incident Management** | Sortable incident table with severity badges, assignees, MITRE tags, and one-click investigation links |
+| **Incident Investigation** | 3-column war room — interactive attack-chain graph (React Flow), event timeline, raw log viewer, analyst notes, and threat intel sidebar |
+| **Threat Hunting** | SIEM-style query interface with saved searches, expandable raw JSON rows, IOC pivot buttons, and quick stats |
+| **MITRE ATT&CK Dashboard** | ATT&CK trend area chart, detection coverage bar chart, and a full technique heatmap with deterministic color-coded hit counts |
+| **Threat Intel Center** | IOC enrichment across AbuseIPDB, VirusTotal, and GreyNoise with environmental observation table |
+| **Sensor Fleet Management** | Fleet overview with health status, plugin badges, version tracking, heartbeat monitoring, and provisioning controls |
+| **Administration** | Multi-tenant user management, RBAC configuration, organization setup, and API key management |
 
-* Zero-Trust sensor enrollment
-* mTLS-based authentication
-* Keycloak-based identity management
-* MITRE ATT&CK detection mapping
+### Interactive Attack-Chain Graph
 
-### Detection & Response
+The crown jewel of the dashboard is the **Alert Correlation Graph** — an interactive, draggable, zoomable node-based visualization built with `@xyflow/react` (React Flow) that maps an attacker's progression through the MITRE ATT&CK kill chain:
 
-* Sigma-inspired YAML rule engine
-* Threat intelligence enrichment
-* Stateful multi-stage attack correlation
-* Canary credential tracking
+```
+Attacker IP → Reconnaissance → Credential Access → Command Execution → Incident
+```
 
-### Cloud Native Infrastructure
-
-* Kubernetes-ready architecture
-* Containerized microservices
-* OpenTelemetry observability
-* OpenSearch analytics pipeline
+Each node displays the MITRE technique ID, source details, and severity. Edges are color-coded and animated to show the attack flow direction.
 
 ---
 
 ## Architecture
 
 ```text
-Sensors
+Sensors (SSH, HTTP, Canary Credentials)
     │
     ▼
-Envoy Gateway
+Envoy Gateway (mTLS)
     │
     ▼
 Kafka + Protobuf
     │
     ▼
-Apache Flink
+Apache Flink (Stream Processing)
     │
  ┌──┴─────────────┐
  ▼                ▼
@@ -78,103 +78,89 @@ Enrichment        MITRE ATT&CK Mapping
  │                │
  └──────┬─────────┘
         ▼
-Incident Correlation
+Incident Correlation (Redis-backed)
         │
         ▼
-OpenSearch
+FastAPI REST API (PostgreSQL)
         │
         ▼
-SOC Dashboard
+SOC Dashboard (Next.js 16 / React 19)
 ```
-
----
-
-## Key Capabilities
-
-### Distributed Sensor Platform
-
-* Secure mTLS enrollment
-* Adaptive heartbeat scheduling
-* Offline telemetry buffering
-* Persistent device identity
-* Plugin-based architecture
-
-### Deception Framework
-
-* SSH Honeypots
-* HTTP Honeypots
-* Canary Credentials
-* Extensible deception plugins
-
-### Detection Engine
-
-* Real-time Kafka ingestion
-* Flink stream processing
-* Sigma-style rule evaluation
-* MITRE ATT&CK tagging
-* Stateful attack correlation
-
-### Threat Intelligence
-
-* IOC extraction
-* Reputation scoring
-* Threat enrichment pipeline
-* Redis-backed threat cache
 
 ---
 
 ## Technology Stack
 
-| Layer          | Technology                         |
-| -------------- | ---------------------------------- |
-| Backend        | FastAPI, Python                    |
-| Streaming      | Apache Kafka                       |
-| Processing     | Apache Flink                       |
-| Serialization  | Protocol Buffers                   |
-| Analytics      | OpenSearch                         |
-| Database       | PostgreSQL                         |
-| Cache          | Redis                              |
-| Identity       | Keycloak                           |
-| Gateway        | Envoy                              |
-| Storage        | MinIO                              |
-| Infrastructure | Docker, Kubernetes                 |
-| Observability  | Prometheus, Grafana, OpenTelemetry |
+| Layer | Technologies |
+|---|---|
+| **Frontend** | Next.js 16, React 19, Tailwind CSS 4, Recharts, React Flow, Framer Motion |
+| **Backend** | FastAPI, Python 3.11, SQLAlchemy (async), Pydantic v2 |
+| **Streaming** | Apache Kafka, Kafka Connect |
+| **Processing** | Apache Flink, Redis Streams |
+| **Serialization** | Protocol Buffers (Protobuf) |
+| **Search & Analytics** | OpenSearch |
+| **Database** | PostgreSQL 15 |
+| **Cache** | Redis 7 |
+| **Identity & Access** | Keycloak (OIDC / OAuth2 / SAML), RBAC |
+| **API Gateway** | Envoy |
+| **Infrastructure** | Docker, Kubernetes, Helm |
+| **Observability** | Prometheus, Grafana, OpenTelemetry |
+| **Detection** | Sigma-style YAML Rule Engine |
+| **Threat Intelligence** | AbuseIPDB, VirusTotal, GreyNoise |
 
 ---
 
-## Scalability Goals
+## Key Highlights
 
-Designed to support:
+### Distributed Sensor Platform
 
-* 100,000+ Distributed Sensors
-* 1,000,000+ Events Per Minute
-* Multi-Tenant Deployments
-* Multi-Region Architectures
-* Petabyte-Scale Telemetry Retention
+* Secure sensor enrollment using mTLS and zero-trust bootstrap tokens
+* Adaptive heartbeat management with offline telemetry buffering
+* Persistent sensor identity with certificate-based authentication
+* Plugin-based architecture for extensible protocol support
 
----
+### Multi-Protocol Deception
 
-## Engineering Challenges Solved
+* **SSH Honeypots** — Brute-force detection and credential harvesting
+* **HTTP Honeypots** — Reconnaissance and web attack surface simulation
+* **Canary Credentials** — Planted tokens that trigger high-fidelity alerts on use
+* Extensible plugin framework for SMB, Database, FTP, and future protocols
 
-### Zero-Trust Device Identity
+### Real-Time Detection Pipeline
 
-Implemented secure sensor enrollment using bootstrap tokens, certificate signing requests (CSRs), and mTLS authentication.
+```text
+Raw Event → Normalization → Threat Intel Enrichment → MITRE ATT&CK Mapping → Rule Evaluation → Correlation → Incident
+```
 
-### High-Volume Telemetry Processing
+* Apache Kafka event streaming with Protobuf serialization
+* Apache Flink stateful stream processing
+* Sigma-inspired YAML detection rules (deploy without code changes)
+* Multi-stage attack correlation across sensors and time windows
 
-Designed a Kafka → Flink pipeline capable of processing large-scale event streams while maintaining low-latency detection.
+### Sigma-Inspired Detection Engine
 
-### Attack Correlation
+Detection logic is defined using declarative YAML rules:
 
-Correlated attacker activity across multiple protocols and sensors to reconstruct attack chains and reduce alert fatigue.
+```yaml
+title: SSH Brute Force
+selection:
+  event_type: ssh.login.attempt
+severity: high
+mitre:
+  technique: T1110
+```
 
-### Schema Evolution
+New detections can be deployed without modifying application code.
 
-Introduced Protocol Buffers and schema-driven event processing to support long-term telemetry compatibility.
+### Stateful Attack Correlation
 
-### Threat Intelligence Enrichment
+The platform correlates attacker behavior across multiple services and time windows:
 
-Built enrichment workflows that transform raw attacker telemetry into contextualized security intelligence.
+```text
+HTTP Reconnaissance → SSH Brute Force → Canary Credential Access → High-Severity Incident
+```
+
+This reduces alert fatigue while dramatically improving detection fidelity.
 
 ---
 
@@ -182,54 +168,113 @@ Built enrichment workflows that transform raw attacker telemetry into contextual
 
 ```text
 apps/
-├── sensor-agent/
-├── sensor-management/
-├── detection-engine/
-├── threat-intel-service/
-├── soc-dashboard/
+├── api-server/            # FastAPI REST API (PostgreSQL, Redis, auth)
+├── soc-dashboard/         # Next.js 16 SOC analyst dashboard
+├── sensor-agent/          # Distributed deception sensor agent
+├── sensor-management/     # Sensor enrollment & lifecycle management
+├── detection-engine/      # Sigma rule engine & MITRE mapping
+├── processing-engine/     # Redis Streams correlation engine
+├── threat-intel-service/  # IOC enrichment (AbuseIPDB, VirusTotal)
+├── schemas/               # Protobuf event schemas
+└── load-tester/           # Performance testing harness
 
 infra/
-├── kubernetes/
-├── helm/
-├── monitoring/
-├── kafka/
+├── docker-compose.yml     # Full local deployment
+├── prometheus/            # Metrics collection
+├── grafana/               # Dashboards & alerting
+└── kubernetes/            # K8s manifests (Helm-ready)
 
-libs/
-├── protobuf/
-├── sdk/
-├── shared/
-
-plugins/
-├── ssh/
-├── http/
-├── canary/
+libs/                      # Shared libraries & SDK
+plugins/                   # Deception protocol plugins (SSH, HTTP, Canary)
+legacy/                    # Original Sentinels legacy code
 ```
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+* Docker & Docker Compose
+* Node.js 20+ (for the dashboard)
+
+### Start the Backend
+
+```bash
+# From the project root
+cd infra
+docker compose up -d
+```
+
+This brings up PostgreSQL, Redis, the API server, the processing engine, Prometheus, and Grafana.
+
+| Service | URL |
+|---|---|
+| API Docs | http://localhost:8000/docs |
+| Grafana | http://localhost:3000 (admin/admin) |
+| Prometheus | http://localhost:9090 |
+
+### Start the Dashboard
+
+```bash
+cd apps/soc-dashboard
+npm install
+npm run dev
+```
+
+The SOC dashboard will be available at **http://localhost:3000**.
+
+---
+
+## Scalability Targets
+
+* **100,000+** sensors
+* **1,000,000+** events per minute
+* Multi-tenant deployments with strict data isolation
+* Multi-region architectures
+* Petabyte-scale telemetry retention
+
+---
+
+## Engineering Challenges Solved
+
+* Distributed sensor management with zero-trust enrollment
+* Secure certificate-based mTLS communication
+* Real-time stream processing at scale
+* Stateful multi-stage attack correlation
+* Threat intelligence enrichment pipelines
+* Declarative rule-driven detection engine
+* Event schema evolution with Protobuf
+* High-volume telemetry pipelines (Kafka + Flink)
+* Cloud-native deployment patterns (Docker, K8s, Helm)
+* Interactive attack-chain visualization (React Flow)
+* SOC analyst workflow design (investigation, hunting, triage)
+
+---
+
+## Future Roadmap
+
+* SMB & Database Honeypots
+* Cross-Sensor Attack Graph Correlation
+* Purple-Team Simulation Engine
+* Automated Response Playbooks (SOAR)
+* Multi-Tenant SaaS Mode
+* Framer Motion page transitions & micro-animations
 
 ---
 
 ## Why This Project Matters
 
-Modern security platforms require expertise across multiple domains:
+Sentinels was built to explore the full-stack challenges of designing a cloud-native security platform — from distributed sensor management and real-time stream processing to interactive analyst workflows and attack-chain visualization.
 
-* Distributed Systems
-* Stream Processing
-* Security Engineering
-* Threat Intelligence
-* Cloud Infrastructure
-* Detection Engineering
+The project combines:
 
-Sentinels was built to explore the challenges of designing an end-to-end security platform that combines all of these disciplines into a single cloud-native architecture.
+- **Distributed systems engineering** — sensor fleet, mTLS, heartbeats
+- **Stream processing** — Kafka, Flink, Redis Streams
+- **Security engineering** — honeypots, canary credentials, MITRE ATT&CK
+- **Threat intelligence** — IOC enrichment, reputation scoring
+- **Cloud-native infrastructure** — Docker, Kubernetes, Helm, GitOps
+- **Frontend engineering** — React Flow graphs, Recharts analytics, responsive dark-mode UI
+- **Detection & response workflows** — incident investigation, threat hunting, correlation
 
----
-
-## Current Focus
-
-* SOC Dashboard
-* Threat Hunting Workflows
-* MITRE ATT&CK Visualizations
-* Incident Management
-* Multi-Tenant Security Operations
-
----
-
-**Built to explore large-scale security platform engineering, detection pipelines, and cloud-native security architectures.**
+into a single end-to-end platform that can be demonstrated in under 3 minutes.

@@ -36,17 +36,17 @@ The default generated config will include all options, with all services set to 
 
 You may also want to fiddle with some of our other services which require a bit more setup;
 
-`smb` - a log watcher for Samba logging files which allows Opencanary to alert on files being opened in a Windows File Share.
+`smb` - a log watcher for Samba logging files which allows Sentinels to alert on files being opened in a Windows File Share.
 
-For this configuration, you will need to set up your own Windows File Share. Please read the steps over `here <https://github.com/thinkst/sentinels/wiki/Opencanary-and-Samba>`_.
+For this configuration, you will need to set up your own Windows File Share. Please read the steps over `here <https://github.com/thinkst/sentinels/wiki/Sentinels-and-Samba>`_.
 
-`portscan` - a log watcher that works with iptables to monitor when your Opencanary is being scanned.
+`portscan` - a log watcher that works with iptables to monitor when your Sentinels is being scanned.
 At this stage, the portscan module supports the detection of Nmap OS, Nmap FIN, Nmap OS, Nmap NULL, and normal port scans.
 
 Logger Configuration
 --------------------
 
-Opencanary allows us to define a bunch of logging/alerting sinks. Below are a list of options you can simply
+Sentinels allows us to define a bunch of logging/alerting sinks. Below are a list of options you can simply
 add to the `logger` section in your config file,
 
 .. code-block:: json

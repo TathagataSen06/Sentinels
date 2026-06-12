@@ -335,7 +335,7 @@ class TeamsHandler(logging.Handler):
                                         "items": [
                                             {
                                                 "type": "Image",
-                                                "url": "https://resources.canary.tools/images/open-canary-green_logo.png",
+                                                "url": "https://resources.canary.tools/images/sentinels-green_logo.png",
                                                 "width": "82px",
                                                 "horizontalAlignment": "Left",
                                             }

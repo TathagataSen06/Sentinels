@@ -1,46 +1,44 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ShieldAlert, Activity, AlertTriangle, Target, Globe } from 'lucide-react';
 import { useSocketStore } from '@/lib/store/useSocketStore';
 import { 
   LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer,
-  BarChart, Bar
 } from 'recharts';
+
+const trendData = [
+  { time: '00:00', incidents: 12 }, { time: '04:00', incidents: 30 },
+  { time: '08:00', incidents: 80 }, { time: '12:00', incidents: 45 },
+  { time: '16:00', incidents: 90 }, { time: '20:00', incidents: 20 },
+];
+
+const eventTypes = ['SSH Login Attempt', 'HTTP Reconnaissance', 'Canary Credential Access', 'Incident Created'] as const;
+const sensors = ['eu-west-1a-ssh', 'us-east-web', 'corp-file-share', 'db-honeypot'] as const;
+const severities = ['INFO', 'WARNING', 'CRITICAL'] as const;
 
 export default function GlobalDashboard() {
   const { events, connect, disconnect, addEvent } = useSocketStore();
 
+  const simulateEvent = useCallback(() => {
+    addEvent({
+      type: eventTypes[Math.floor(Math.random() * eventTypes.length)],
+      message: `Detected anomalous behavior from ${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
+      sensor: sensors[Math.floor(Math.random() * sensors.length)],
+      severity: severities[Math.floor(Math.random() * severities.length)],
+    });
+  }, [addEvent]);
+
   useEffect(() => {
     connect();
-    
-    // Simulate real-time WebSocket events coming in
-    const interval = setInterval(() => {
-      const types = ['SSH Login Attempt', 'HTTP Reconnaissance', 'Canary Credential Access', 'Incident Created'];
-      const sensors = ['eu-west-1a-ssh', 'us-east-web', 'corp-file-share', 'db-honeypot'];
-      const severities = ['INFO', 'WARNING', 'CRITICAL'] as const;
-      
-      addEvent({
-        type: types[Math.floor(Math.random() * types.length)],
-        message: `Detected anomalous behavior from ${Math.floor(Math.random() * 255)}.x.x.x`,
-        sensor: sensors[Math.floor(Math.random() * sensors.length)],
-        severity: severities[Math.floor(Math.random() * severities.length)],
-      });
-    }, 3000);
-
+    const interval = setInterval(simulateEvent, 3000);
     return () => {
       clearInterval(interval);
       disconnect();
     };
-  }, [connect, disconnect, addEvent]);
-
-  const trendData = [
-    { time: '00:00', incidents: 12 }, { time: '04:00', incidents: 30 },
-    { time: '08:00', incidents: 80 }, { time: '12:00', incidents: 45 },
-    { time: '16:00', incidents: 90 }, { time: '20:00', incidents: 20 },
-  ];
+  }, [connect, disconnect, simulateEvent]);
 
   return (
     <div className="space-y-6 h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -80,7 +78,7 @@ export default function GlobalDashboard() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
         {/* Attack Overview Charts */}
         <div className="lg:col-span-2 space-y-6 flex flex-col">
           <Card className="bg-gray-900 border-gray-800 flex-1">
@@ -96,7 +94,7 @@ export default function GlobalDashboard() {
                   <XAxis dataKey="time" stroke="#9CA3AF" fontSize={12} />
                   <YAxis stroke="#9CA3AF" fontSize={12} />
                   <RechartsTooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '0.5rem', color: '#F3F4F6' }} />
-                  <Line type="monotone" dataKey="incidents" stroke="#EF4444" strokeWidth={3} dot={{ r: 4, fill: '#EF4444' }} />
+                  <Line type="monotone" dataKey="incidents" stroke="#EF4444" strokeWidth={3} dot={{ r: 4, fill: '#EF4444' }} activeDot={{ r: 6, stroke: '#EF4444', strokeWidth: 2 }} />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
@@ -104,14 +102,14 @@ export default function GlobalDashboard() {
         </div>
 
         {/* Real-Time Activity Feed */}
-        <Card className="bg-gray-900 border-gray-800 flex flex-col overflow-hidden">
-          <CardHeader className="border-b border-gray-800 pb-4 bg-gray-950 flex flex-row items-center justify-between">
+        <Card className="bg-gray-900 border-gray-800 flex flex-col overflow-hidden min-h-0">
+          <CardHeader className="border-b border-gray-800 pb-4 bg-gray-950 flex flex-row items-center justify-between shrink-0">
             <CardTitle className="text-sm text-gray-400 font-medium uppercase tracking-wider flex items-center gap-2">
               <Activity size={16} className="text-green-500 animate-pulse"/> Live Activity Stream
             </CardTitle>
             <Badge variant="outline" className="text-xs bg-green-500/10 text-green-400 border-green-500/20">Connected</Badge>
           </CardHeader>
-          <CardContent className="p-0 flex-1 overflow-auto">
+          <CardContent className="p-0 flex-1 overflow-y-auto min-h-0">
             <div className="divide-y divide-gray-800">
               {events.length === 0 ? (
                 <div className="p-8 text-center text-gray-500 text-sm">Listening for events...</div>
@@ -122,7 +120,7 @@ export default function GlobalDashboard() {
                       <span className={`text-sm font-semibold ${event.severity === 'CRITICAL' ? 'text-red-400' : event.severity === 'WARNING' ? 'text-yellow-400' : 'text-blue-400'}`}>
                         {event.type}
                       </span>
-                      <span className="text-xs text-gray-500 font-mono">
+                      <span className="text-xs text-gray-500 font-mono shrink-0 ml-2">
                         {new Date(event.timestamp).toLocaleTimeString()}
                       </span>
                     </div>
