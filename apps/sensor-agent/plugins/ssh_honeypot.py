@@ -7,9 +7,10 @@ from .base import BasePlugin
 logger = logging.getLogger(__name__)
 
 class FakeShell(asyncssh.SSHServerProcess):
-    def __init__(self, emit_callback, username):
+    def __init__(self, emit_callback, username, src_ip=None):
         self.emit_callback = emit_callback
         self.username = username
+        self.src_ip = src_ip
         self.cwd = "/home/" + username
         
     def connection_made(self, process):
@@ -31,6 +32,7 @@ class FakeShell(asyncssh.SSHServerProcess):
             return
             
         self.emit_callback("ssh.command.executed", {
+            "src_ip": self.src_ip,
             "username": self.username,
             "command": command
         })
@@ -74,13 +76,15 @@ class FakeShell(asyncssh.SSHServerProcess):
 class SSHHoneypotServer(asyncssh.SSHServer):
     def __init__(self, emit_callback):
         self.emit_callback = emit_callback
+        self.src_ip = None
 
     def connection_made(self, conn):
         peer = conn.get_extra_info('peername')
+        self.src_ip = peer[0] if peer else None
         logger.info(f"SSH connection received from {peer}")
         self.emit_callback("ssh.connection.attempt", {
-            "src_ip": peer[0],
-            "src_port": peer[1]
+            "src_ip": self.src_ip,
+            "src_port": peer[1] if peer else None
         })
 
     def password_auth_supported(self):
@@ -88,6 +92,7 @@ class SSHHoneypotServer(asyncssh.SSHServer):
 
     def validate_password(self, username, password):
         self.emit_callback("ssh.login.attempt", {
+            "src_ip": self.src_ip,
             "username": username,
             "password": password
         })
@@ -99,6 +104,7 @@ class SSHHoneypotServer(asyncssh.SSHServer):
 
     def validate_public_key(self, username, key):
         self.emit_callback("ssh.key.attempt", {
+            "src_ip": self.src_ip,
             "username": username,
             "algorithm": key.get_algorithm()
         })
@@ -117,7 +123,9 @@ class SSHHoneypotPlugin(BasePlugin):
     async def handle_client(self, process):
         # asyncssh process handler
         username = process.channel.get_extra_info('username')
-        shell = FakeShell(self.emit_event, username)
+        peer = process.channel.get_extra_info('peername')
+        src_ip = peer[0] if peer else None
+        shell = FakeShell(self.emit_event, username, src_ip=src_ip)
         shell.connection_made(process)
         
         while not process.stdin.at_eof():

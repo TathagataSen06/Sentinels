@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useMemo, useCallback } from 'react';
+import { memo, useMemo } from 'react';
 import { 
   ReactFlow, 
   Background, 
@@ -77,32 +77,102 @@ const nodeTypes = {
   incident: IncidentNode,
 };
 
-// --- Mock Graph Data (static) ---
+// --- Stage typing ------------------------------------------------------------
 
-const initialNodes: Node[] = [
-  { id: '1', type: 'threatActor', position: { x: 50, y: 150 }, data: { label: 'Attacker IP', detail: '192.168.1.105', badge: 'Tor Exit Node' } },
-  { id: '2', type: 'recon', position: { x: 300, y: 150 }, data: { label: 'Reconnaissance', detail: 'HTTP Port Scan', badge: 'T1595' } },
-  { id: '3', type: 'credential', position: { x: 550, y: 50 }, data: { label: 'Credential Access', detail: 'SSH Brute Force', badge: 'T1110' } },
-  { id: '4', type: 'credential', position: { x: 550, y: 250 }, data: { label: 'Credential Access', detail: 'Web Login Bypass', badge: 'T1190' } },
-  { id: '5', type: 'command', position: { x: 800, y: 150 }, data: { label: 'Command Execution', detail: 'wget rootkit.sh', badge: 'T1059' } },
-  { id: '6', type: 'incident', position: { x: 1050, y: 150 }, data: { label: 'Incident Triggered', detail: 'INC-2041', badge: 'CRITICAL' } },
+export interface CorrelationStage {
+  type: 'recon' | 'credential' | 'command';
+  label: string;
+  detail: string;
+  technique?: string;
+}
+
+export interface AlertCorrelationGraphProps {
+  sourceIp?: string;
+  incidentLabel?: string;
+  severity?: string;
+  stages?: CorrelationStage[];
+}
+
+const EDGE_COLORS: Record<string, string> = {
+  recon: '#f59e0b',
+  credential: '#eab308',
+  command: '#ef4444',
+  incident: '#3b82f6',
+};
+
+// Static demo chain — used only when the component is rendered without props.
+const demoStages: CorrelationStage[] = [
+  { type: 'recon', label: 'Reconnaissance', detail: 'HTTP Port Scan', technique: 'T1595' },
+  { type: 'credential', label: 'Credential Access', detail: 'SSH Brute Force', technique: 'T1110' },
+  { type: 'command', label: 'Command Execution', detail: 'wget rootkit.sh', technique: 'T1059' },
 ];
 
-const initialEdges: Edge[] = [
-  { id: 'e1-2', source: '1', target: '2', animated: true, style: { stroke: '#ef4444', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#ef4444' } },
-  { id: 'e2-3', source: '2', target: '3', animated: true, style: { stroke: '#f59e0b', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#f59e0b' } },
-  { id: 'e2-4', source: '2', target: '4', animated: true, style: { stroke: '#f59e0b', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#f59e0b' } },
-  { id: 'e3-5', source: '3', target: '5', animated: true, style: { stroke: '#ef4444', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#ef4444' } },
-  { id: 'e4-5', source: '4', target: '5', animated: true, style: { stroke: '#ef4444', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#ef4444' } },
-  { id: 'e5-6', source: '5', target: '6', animated: true, style: { stroke: '#3b82f6', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#3b82f6' } },
-];
+function buildGraph(
+  sourceIp: string,
+  incidentLabel: string,
+  severity: string,
+  stages: CorrelationStage[],
+): { nodes: Node[]; edges: Edge[] } {
+  const colX = (i: number) => 50 + i * 240;
+  const nodes: Node[] = [
+    {
+      id: 'attacker',
+      type: 'threatActor',
+      position: { x: colX(0), y: 150 },
+      data: { label: 'Attacker IP', detail: sourceIp },
+    },
+  ];
+  const edges: Edge[] = [];
+  let prevId = 'attacker';
 
-export function AlertCorrelationGraph() {
+  stages.forEach((stage, idx) => {
+    const id = `stage-${idx}`;
+    nodes.push({
+      id,
+      type: stage.type,
+      position: { x: colX(idx + 1), y: 150 },
+      data: { label: stage.label, detail: stage.detail, badge: stage.technique },
+    });
+    const color = EDGE_COLORS[stage.type] ?? '#6b7280';
+    edges.push({
+      id: `e-${prevId}-${id}`, source: prevId, target: id, animated: true,
+      style: { stroke: color, strokeWidth: 2 },
+      markerEnd: { type: MarkerType.ArrowClosed, color },
+    });
+    prevId = id;
+  });
+
+  nodes.push({
+    id: 'incident',
+    type: 'incident',
+    position: { x: colX(stages.length + 1), y: 150 },
+    data: { label: 'Incident', detail: incidentLabel, badge: severity },
+  });
+  edges.push({
+    id: `e-${prevId}-incident`, source: prevId, target: 'incident', animated: true,
+    style: { stroke: EDGE_COLORS.incident, strokeWidth: 2 },
+    markerEnd: { type: MarkerType.ArrowClosed, color: EDGE_COLORS.incident },
+  });
+
+  return { nodes, edges };
+}
+
+export function AlertCorrelationGraph({
+  sourceIp = '192.168.1.105',
+  incidentLabel = 'INC-2041',
+  severity = 'CRITICAL',
+  stages = demoStages,
+}: AlertCorrelationGraphProps) {
+  const { nodes, edges } = useMemo(
+    () => buildGraph(sourceIp, incidentLabel, severity, stages.length ? stages : demoStages),
+    [sourceIp, incidentLabel, severity, stages],
+  );
+
   return (
     <div className="w-full h-[400px] border border-gray-800 rounded-xl overflow-hidden bg-gray-950/50">
       <ReactFlow
-        nodes={initialNodes}
-        edges={initialEdges}
+        nodes={nodes}
+        edges={edges}
         nodeTypes={nodeTypes}
         fitView
         className="bg-transparent"

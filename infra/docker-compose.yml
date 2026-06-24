@@ -77,8 +77,11 @@ services:
     ports:
     - 8000:8000
     environment:
-    - DATABASE_URL=postgresql://sentinels:sentinels_password@postgres:5432/sentinels
-    - REDIS_URL=redis://redis:6379/0
+    - DATABASE_URL=postgresql+asyncpg://sentinels:sentinels_password@postgres:5432/sentinels
+    - REDIS_HOST=redis
+    - JWT_SECRET_KEY=${JWT_SECRET_KEY:-dev-insecure-change-me}
+    - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@sentinels.local}
+    - ADMIN_PASSWORD=${ADMIN_PASSWORD:-changeme}
     - LOG_LEVEL=INFO
     depends_on:
       postgres:
@@ -117,12 +120,13 @@ services:
     container_name: sentinels-processor
     restart: unless-stopped
     environment:
-    - REDIS_URL=redis://redis:6379/0
-    - DATABASE_URL=postgresql://sentinels:sentinels_password@postgres:5432/sentinels
+    - REDIS_HOST=redis
+    - DATABASE_URL=postgresql+asyncpg://sentinels:sentinels_password@postgres:5432/sentinels
     - LOG_LEVEL=INFO
     depends_on:
     - redis
     - postgres
+    - api-server
     networks:
     - sentinels-network
     logging:

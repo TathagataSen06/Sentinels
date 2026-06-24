@@ -39,6 +39,12 @@ export default function IncidentManagement() {
             <div className="p-8 text-center text-gray-500">Loading incidents...</div>
           ) : error ? (
             <div className="p-8 text-center text-red-500">Failed to load incidents.</div>
+          ) : !incidents || incidents.length === 0 ? (
+            <div className="p-12 text-center text-gray-500">
+              <ShieldAlert className="mx-auto mb-3 text-gray-700" size={40} />
+              <p className="font-medium text-gray-400">No incidents yet</p>
+              <p className="text-sm mt-1">Incidents appear here as sensors report attacker activity and the engine correlates it.</p>
+            </div>
           ) : (
             <Table>
               <TableHeader>

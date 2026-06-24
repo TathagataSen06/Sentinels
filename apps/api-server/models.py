@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 
-from sqlalchemy import String, DateTime, ForeignKey, Boolean, JSON, Index
+from sqlalchemy import String, Integer, DateTime, ForeignKey, Boolean, JSON, Index, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
@@ -86,3 +86,37 @@ class DeceptionAsset(Base):
     
     # Relationships
     tenant: Mapped["Tenant"] = relationship(back_populates="deception_assets")
+
+
+class Incident(Base):
+    """A correlated attack campaign, produced by the processing engine.
+
+    One incident represents the aggregated activity of a single source IP within
+    a correlation window for a tenant. The processing engine upserts these rows
+    as it correlates events; the API and SOC dashboard read them.
+    """
+    __tablename__ = "incidents"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id", ondelete="CASCADE"), index=True)
+    source_ip: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    title: Mapped[str] = mapped_column(String, nullable=False)
+    severity: Mapped[str] = mapped_column(String, default="LOW")  # LOW, MEDIUM, HIGH, CRITICAL
+    severity_score: Mapped[int] = mapped_column(Integer, default=0)
+    status: Mapped[str] = mapped_column(String, default="NEW")  # NEW, INVESTIGATING, CONTAINED, RESOLVED, CLOSED
+    assignee: Mapped[Optional[str]] = mapped_column(String)
+    sensor_name: Mapped[Optional[str]] = mapped_column(String)
+    mitre: Mapped[List[str]] = mapped_column(JSONB, default=list)
+    event_count: Mapped[int] = mapped_column(Integer, default=0)
+    events: Mapped[List[Dict[str, Any]]] = mapped_column(JSONB, default=list)
+    first_seen: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    last_seen: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        # One open incident per (tenant, source IP); the processing engine upserts on this.
+        UniqueConstraint("tenant_id", "source_ip", name="uq_incident_tenant_source"),
+    )
+
+    # Relationships
+    tenant: Mapped["Tenant"] = relationship()
