@@ -27,6 +27,7 @@ limits:
   read_timeout: 10         # seconds for a single read
   max_line_bytes: 4096     # cap on a single line
   max_session_bytes: 65536 # cap on total bytes read from one peer
+  backlog: 512             # listen() backlog; raise to absorb connection bursts
 
 rate_limit:
   enabled: true

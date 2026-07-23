@@ -33,6 +33,35 @@ def test_defaults_are_applied(tmp_path):
     assert config.services[0].type == "ssh"
 
 
+def test_limits_defaults_and_override(tmp_path):
+    path = _write(
+        tmp_path,
+        """
+        limits:
+          backlog: 1024
+        services: []
+        """,
+    )
+    config = load_config(path, apply_env=False)
+    assert config.limits.backlog == 1024
+    # Untouched limits keep their defaults.
+    assert config.limits.session_timeout == 30.0
+    assert config.limits.max_line_bytes == 4096
+
+
+def test_invalid_backlog_rejected(tmp_path):
+    path = _write(
+        tmp_path,
+        """
+        limits:
+          backlog: 0
+        services: []
+        """,
+    )
+    with pytest.raises(ConfigError, match="limits.backlog: must be >= 1"):
+        load_config(path, apply_env=False)
+
+
 def test_unknown_top_level_key_rejected(tmp_path):
     path = _write(tmp_path, "bogus: true\n")
     with pytest.raises(ConfigError, match="unknown option"):

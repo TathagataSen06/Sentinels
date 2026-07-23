@@ -211,6 +211,7 @@ class BaseService:
             host=self.config.host,
             port=self.config.port,
             limit=self.context.limits.max_line_bytes,
+            backlog=self.context.limits.backlog,
         )
         self.context.logger.info(
             "service %s (%s) listening on %s:%d",

@@ -1,0 +1,39 @@
+# Benchmark configuration.
+#
+# Rate limiting is DISABLED here so the load test measures the server's raw
+# ceiling rather than the per-source limiter (which, in production, is exactly
+# what caps an abusive single source). Event logging is kept ON and written to
+# a file so the numbers include the real cost of structured logging.
+
+node_id: bench
+logging:
+  level: WARNING
+  console: false
+  app_log: null
+  event_log: data/bench-events.log
+metrics:
+  enabled: true
+  host: 127.0.0.1
+  port: 9199
+limits:
+  session_timeout: 30
+  read_timeout: 5
+  max_line_bytes: 4096
+  max_session_bytes: 65536
+  backlog: 2048
+rate_limit:
+  enabled: false
+services:
+  - name: generic
+    type: generic
+    host: 127.0.0.1
+    port: 9401
+    banner: "SSH-2.0-OpenSSH_8.9p1"
+    options:
+      max_reads: 1
+  - name: telnet
+    type: telnet
+    host: 127.0.0.1
+    port: 9402
+    options:
+      hostname: bench

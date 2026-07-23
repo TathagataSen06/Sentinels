@@ -123,12 +123,19 @@ class LimitsConfig:
     read_timeout: float = 10.0
     max_line_bytes: int = 4096
     max_session_bytes: int = 65536
+    backlog: int = 512
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> LimitsConfig:
         _reject_unknown(
             data,
-            {"session_timeout", "read_timeout", "max_line_bytes", "max_session_bytes"},
+            {
+                "session_timeout",
+                "read_timeout",
+                "max_line_bytes",
+                "max_session_bytes",
+                "backlog",
+            },
             "limits",
         )
 
@@ -154,6 +161,7 @@ class LimitsConfig:
                 "limits.max_session_bytes",
                 minimum=1,
             ),
+            backlog=_as_int(data.get("backlog", 512), "limits.backlog", minimum=1),
         )
 
 

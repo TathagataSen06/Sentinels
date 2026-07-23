@@ -111,7 +111,7 @@ example. Top-level sections:
 | `node_id`     | Identifier stamped onto every event.                          |
 | `logging`     | Levels, console mirroring, file paths, and rotation.          |
 | `metrics`     | Prometheus exposition endpoint bind address.                  |
-| `limits`      | Session/read timeouts and per-line / per-session byte caps.   |
+| `limits`      | Session/read timeouts, per-line / per-session byte caps, listen `backlog`. |
 | `rate_limit`  | Per-source token bucket (`max_events_per_minute`, `burst`).   |
 | `services`    | List of decoys to run.                                        |
 
@@ -177,6 +177,42 @@ Exposed at `http://<metrics.host>:<metrics.port>/metrics`:
 | `sentinels_active_connections`     | gauge   | `service`              |
 | `sentinels_build_info`             | info    | `version`              |
 
+## Performance
+
+The numbers below are **measured, not estimated** — reproduce them with the
+harness in [`benchmarks/`](benchmarks/). Each decoy interaction is a full
+connect → banner → (optional exchange) → close cycle with structured event
+logging enabled and written to disk.
+
+**Test environment:** AMD Ryzen 7 7445HS (6 cores / 12 threads), Windows 11,
+CPython 3.11 (asyncio `ProactorEventLoop`), loopback networking. Rate limiting
+was disabled for these runs to measure the server's ceiling rather than the
+per-source limiter. A single Sentinels event loop was under test.
+
+| Metric | Result | Notes |
+| ------ | ------ | ----- |
+| Idle memory (RSS) | **~33 MB** | Interpreter + asyncio + metrics endpoint |
+| Baseline latency (unloaded) | **~0.8 ms** min, ~15 ms median | Sequential connect/banner/close |
+| Sustained throughput | **~1,000 conn/s** (855–1,086 across runs) | One event loop; saturates ~1 CPU core at this rate |
+| In-flight latency @ 100 concurrent | **p50 ~94 ms**, p95 ~130 ms | Full interaction incl. event logging |
+| Concurrency capacity | **3,000 simultaneous connections** in ~216 MB (~74 KB/conn) | Long-lived held connections |
+
+**Validated against the server's own telemetry.** In a mixed run driving 10,963
+connections, the `/metrics` counters reported exactly `connections_total=10963`
+and `events_total=21926` — precisely two lifecycle events (open + close) per
+connection, matching the load generator's completed count with zero drift. The
+accounting is exact under load, not sampled.
+
+**Scaling model.** asyncio is single-threaded, so one instance saturates one CPU
+core (observed ~96% of a core at ceiling). Scale **horizontally**: run one
+instance per core / per decoy port range (the provided Compose service scales
+cleanly to replicas), each exporting its own metrics for Prometheus to aggregate.
+The Linux/epoll deployment target (the Docker image) typically sustains higher
+throughput and lower per-connection memory than the Windows loopback figures
+above. In production the per-source rate limiter — off for this ceiling test —
+caps any single abusive source to a configured burst, so real single-origin load
+is bounded by design regardless of raw capacity.
+
 ## Security considerations
 
 - **Isolate the node.** A honeypot is deliberately attacked. Run it in a
@@ -213,6 +249,7 @@ src/sentinels/          framework package
   cli.py                 command-line interface
 infra/                   Prometheus config + Grafana provisioning/dashboards
 config/                  example configuration
+benchmarks/              reproducible load-test harness
 tests/                   test suite
 Dockerfile               non-root runtime image
 docker-compose.yml       Sentinels + Prometheus + Grafana stack
