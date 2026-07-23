@@ -1,0 +1,72 @@
+name: honeytrace
+
+services:
+  honeytrace:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: honeytrace:latest
+    restart: unless-stopped
+    # Host-side ports are intentionally non-privileged by default so
+    # `docker compose up` never collides with the host's own SSH/HTTP.
+    # For a live deployment, remap the LEFT (host) side to the real target
+    # ports, e.g. "22:2222", "23:2323", "21:2121", "80:8080".
+    ports:
+      - "2222:2222"   # ssh   decoy
+      - "2323:2323"   # telnet decoy
+      - "2121:2121"   # ftp   decoy
+      - "8080:8080"   # http  decoy
+    volumes:
+      - ./config/honeytrace.yml:/etc/honeytrace/honeytrace.yml:ro
+      - ./data/logs:/var/log/honeytrace
+    environment:
+      HONEYTRACE_NODE_ID: honeytrace-01
+    networks:
+      - honeytrace
+    # No host port for metrics: Prometheus scrapes it over the internal network.
+    expose:
+      - "9101"
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    restart: unless-stopped
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+    ports:
+      - "9090:9090"
+    networks:
+      - honeytrace
+    depends_on:
+      - honeytrace
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+    volumes:
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - honeytrace
+    depends_on:
+      - prometheus
+
+networks:
+  honeytrace:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  grafana-data:
