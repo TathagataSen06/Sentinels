@@ -1,6 +1,6 @@
 """Event sinks.
 
-A sink is the destination for :class:`~honeytrace.events.Event` objects. The
+A sink is the destination for :class:`~sentinels.events.Event` objects. The
 production sink writes each event as a JSON line to the event logger and
 updates Prometheus counters; the in-memory sink is used by the test suite to
 assert on emitted events without touching the logging subsystem.

@@ -26,13 +26,13 @@ lint:
 	ruff check .
 
 run:
-	honeytrace run --config config/honeytrace.yml
+	sentinels run --config config/sentinels.yml
 
 validate:
-	honeytrace validate --config config/honeytrace.yml
+	sentinels validate --config config/sentinels.yml
 
 docker:
-	docker build -t honeytrace:latest .
+	docker build -t sentinels:latest .
 
 up:
 	docker compose up -d --build

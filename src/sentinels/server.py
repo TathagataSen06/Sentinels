@@ -1,6 +1,6 @@
 """Server orchestration.
 
-Builds the shared :class:`~honeytrace.services.base.ServiceContext`, starts
+Builds the shared :class:`~sentinels.services.base.ServiceContext`, starts
 every enabled decoy plus the Prometheus exposition endpoint, and runs until a
 shutdown signal is received. Shutdown is graceful: listeners stop accepting,
 in-flight sessions are cancelled, and the metrics server is closed.
@@ -21,7 +21,7 @@ from .services import BaseService, ServiceContext, create_service
 from .sinks import LoggingEventSink
 
 
-class HoneytraceServer:
+class SentinelsServer:
     """Lifecycle manager for a running honeypot node."""
 
     def __init__(self, config: Config, metrics: Metrics | None = None) -> None:
@@ -54,7 +54,7 @@ class HoneytraceServer:
 
         self._start_metrics()
         self.logger.info(
-            "honeytrace %s ready: %d service(s) active on node %r",
+            "sentinels %s ready: %d service(s) active on node %r",
             __version__,
             len(started),
             self.config.node_id,

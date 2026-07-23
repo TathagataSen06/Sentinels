@@ -1,6 +1,6 @@
-"""Honeytrace — a lightweight, high-signal honeypot framework.
+"""Sentinels — a lightweight, high-signal honeypot framework.
 
-Honeytrace stands up low-interaction decoy services on common attacker
+Sentinels stands up low-interaction decoy services on common attacker
 target ports, records every interaction as a structured event, and exposes
 aggregate telemetry over a Prometheus endpoint for dashboarding and alerting.
 """

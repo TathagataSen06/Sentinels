@@ -1,11 +1,11 @@
-name: honeytrace
+name: sentinels
 
 services:
-  honeytrace:
+  sentinels:
     build:
       context: .
       dockerfile: Dockerfile
-    image: honeytrace:latest
+    image: sentinels:latest
     restart: unless-stopped
     # Host-side ports are intentionally non-privileged by default so
     # `docker compose up` never collides with the host's own SSH/HTTP.
@@ -17,12 +17,12 @@ services:
       - "2121:2121"   # ftp   decoy
       - "8080:8080"   # http  decoy
     volumes:
-      - ./config/honeytrace.yml:/etc/honeytrace/honeytrace.yml:ro
-      - ./data/logs:/var/log/honeytrace
+      - ./config/sentinels.yml:/etc/sentinels/sentinels.yml:ro
+      - ./data/logs:/var/log/sentinels
     environment:
-      HONEYTRACE_NODE_ID: honeytrace-01
+      SENTINELS_NODE_ID: sentinels-01
     networks:
-      - honeytrace
+      - sentinels
     # No host port for metrics: Prometheus scrapes it over the internal network.
     expose:
       - "9101"
@@ -40,9 +40,9 @@ services:
     ports:
       - "9090:9090"
     networks:
-      - honeytrace
+      - sentinels
     depends_on:
-      - honeytrace
+      - sentinels
 
   grafana:
     image: grafana/grafana:11.2.0
@@ -59,12 +59,12 @@ services:
     ports:
       - "3000:3000"
     networks:
-      - honeytrace
+      - sentinels
     depends_on:
       - prometheus
 
 networks:
-  honeytrace:
+  sentinels:
     driver: bridge
 
 volumes:

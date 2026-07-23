@@ -1,4 +1,4 @@
-"""Enable ``python -m honeytrace``."""
+"""Enable ``python -m sentinels``."""
 
 from __future__ import annotations
 

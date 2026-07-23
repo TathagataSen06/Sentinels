@@ -1,6 +1,6 @@
-# Honeytrace
+# Sentinels
 
-A lightweight, high-signal honeypot framework. Honeytrace stands up plausible
+A lightweight, high-signal honeypot framework. Sentinels stands up plausible
 decoy services on the ports attackers probe, records every interaction as a
 structured JSON event, and exposes aggregate telemetry over Prometheus for
 dashboards and alerting.
@@ -28,13 +28,13 @@ run.
 - **Strict config validation.** Unknown keys, port clashes, and type errors are
   rejected at load time, not at 3 a.m.
 - **Container-native.** Runs as a non-root user; a one-command Compose stack
-  brings up Honeytrace, Prometheus, and Grafana together.
+  brings up Sentinels, Prometheus, and Grafana together.
 
 ## Architecture
 
 ```
                           ┌──────────────────────────────┐
-   attackers  ──tcp──▶    │  Honeytrace node             │
+   attackers  ──tcp──▶    │  Sentinels node             │
                           │                              │
                           │  asyncio listeners           │
                           │   ssh / telnet / ftp / http   │
@@ -65,9 +65,9 @@ This starts three services:
 
 | Service     | URL                              | Notes                              |
 | ----------- | -------------------------------- | ---------------------------------- |
-| Honeytrace  | ports 2222 / 2323 / 2121 / 8080  | the decoys (see note below)        |
+| Sentinels  | ports 2222 / 2323 / 2121 / 8080  | the decoys (see note below)        |
 | Prometheus  | http://localhost:9090            | scrapes the node every 15s         |
-| Grafana     | http://localhost:3000            | dashboard "Honeytrace Overview"    |
+| Grafana     | http://localhost:3000            | dashboard "Sentinels Overview"    |
 
 Captured events are written to `./data/logs/events.log` on the host.
 
@@ -86,24 +86,24 @@ python -m venv .venv
 . .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
 
-honeytrace validate -c config/honeytrace.yml
-honeytrace run -c config/honeytrace.yml
+sentinels validate -c config/sentinels.yml
+sentinels run -c config/sentinels.yml
 ```
 
 Useful commands:
 
 ```bash
-honeytrace list-services      # print registered decoy types
-honeytrace validate -c FILE   # validate a config and exit
-honeytrace run -c FILE        # run the honeypot
+sentinels list-services      # print registered decoy types
+sentinels validate -c FILE   # validate a config and exit
+sentinels run -c FILE        # run the honeypot
 ```
 
-Configuration is resolved from `-c/--config`, then `$HONEYTRACE_CONFIG`, then
-`config/honeytrace.yml`, then `/etc/honeytrace/honeytrace.yml`.
+Configuration is resolved from `-c/--config`, then `$SENTINELS_CONFIG`, then
+`config/sentinels.yml`, then `/etc/sentinels/sentinels.yml`.
 
 ## Configuration
 
-See [`config/honeytrace.yml`](config/honeytrace.yml) for a fully commented
+See [`config/sentinels.yml`](config/sentinels.yml) for a fully commented
 example. Top-level sections:
 
 | Section       | Purpose                                                        |
@@ -137,9 +137,9 @@ Service options:
 | `generic` | `max_reads`   | `4`       | Number of payload reads to record.         |
 | `generic` | `banner_crlf` | `true`    | Append CRLF to the banner.                 |
 
-Environment overrides (handy in containers): `HONEYTRACE_NODE_ID`,
-`HONEYTRACE_LOG_LEVEL`, `HONEYTRACE_METRICS_PORT`, `HONEYTRACE_EVENT_LOG`,
-`HONEYTRACE_CONFIG`.
+Environment overrides (handy in containers): `SENTINELS_NODE_ID`,
+`SENTINELS_LOG_LEVEL`, `SENTINELS_METRICS_PORT`, `SENTINELS_EVENT_LOG`,
+`SENTINELS_CONFIG`.
 
 ## Event schema
 
@@ -148,7 +148,7 @@ Each line in the event log is one JSON object:
 ```json
 {
   "timestamp": "2026-07-23T17:25:25.002+00:00",
-  "node_id": "honeytrace-01",
+  "node_id": "sentinels-01",
   "service": "telnet",
   "event_type": "login_attempt",
   "transport": "tcp",
@@ -169,13 +169,13 @@ Exposed at `http://<metrics.host>:<metrics.port>/metrics`:
 
 | Metric                              | Type    | Labels                 |
 | ----------------------------------- | ------- | ---------------------- |
-| `honeytrace_connections_total`      | counter | `service`, `transport` |
-| `honeytrace_events_total`           | counter | `service`, `event_type`|
-| `honeytrace_login_attempts_total`   | counter | `service`              |
-| `honeytrace_bytes_received_total`   | counter | `service`              |
-| `honeytrace_rate_limited_total`     | counter | `service`              |
-| `honeytrace_active_connections`     | gauge   | `service`              |
-| `honeytrace_build_info`             | info    | `version`              |
+| `sentinels_connections_total`      | counter | `service`, `transport` |
+| `sentinels_events_total`           | counter | `service`, `event_type`|
+| `sentinels_login_attempts_total`   | counter | `service`              |
+| `sentinels_bytes_received_total`   | counter | `service`              |
+| `sentinels_rate_limited_total`     | counter | `service`              |
+| `sentinels_active_connections`     | gauge   | `service`              |
+| `sentinels_build_info`             | info    | `version`              |
 
 ## Security considerations
 
@@ -203,7 +203,7 @@ both emitted events and Prometheus metrics.
 ## Project layout
 
 ```
-src/honeytrace/          framework package
+src/sentinels/          framework package
   services/              decoy implementations + registry
   config.py              typed config loading & validation
   events.py              event model
@@ -215,7 +215,7 @@ infra/                   Prometheus config + Grafana provisioning/dashboards
 config/                  example configuration
 tests/                   test suite
 Dockerfile               non-root runtime image
-docker-compose.yml       Honeytrace + Prometheus + Grafana stack
+docker-compose.yml       Sentinels + Prometheus + Grafana stack
 ```
 
 ## License

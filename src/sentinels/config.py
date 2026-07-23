@@ -214,7 +214,7 @@ class ServiceConfig:
 
 @dataclass(slots=True)
 class Config:
-    node_id: str = "honeytrace"
+    node_id: str = "sentinels"
     logging: LoggingConfig = field(default_factory=LoggingConfig)
     metrics: MetricsConfig = field(default_factory=MetricsConfig)
     limits: LimitsConfig = field(default_factory=LimitsConfig)
@@ -257,7 +257,7 @@ class Config:
             bindings[key] = svc.name
 
         return cls(
-            node_id=_as_str(data.get("node_id", "honeytrace"), "node_id"),
+            node_id=_as_str(data.get("node_id", "sentinels"), "node_id"),
             logging=LoggingConfig.from_dict(_require_mapping(data.get("logging"), "logging")),
             metrics=MetricsConfig.from_dict(_require_mapping(data.get("metrics"), "metrics")),
             limits=LimitsConfig.from_dict(_require_mapping(data.get("limits"), "limits")),
@@ -268,23 +268,23 @@ class Config:
         )
 
     def apply_env_overrides(self, environ: dict[str, str] | None = None) -> Config:
-        """Apply ``HONEYTRACE_*`` environment overrides in place and return self."""
+        """Apply ``SENTINELS_*`` environment overrides in place and return self."""
         env = environ if environ is not None else dict(os.environ)
 
-        if "HONEYTRACE_NODE_ID" in env:
-            self.node_id = env["HONEYTRACE_NODE_ID"]
-        if "HONEYTRACE_LOG_LEVEL" in env:
-            level = env["HONEYTRACE_LOG_LEVEL"].upper()
+        if "SENTINELS_NODE_ID" in env:
+            self.node_id = env["SENTINELS_NODE_ID"]
+        if "SENTINELS_LOG_LEVEL" in env:
+            level = env["SENTINELS_LOG_LEVEL"].upper()
             if level not in {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}:
-                raise ConfigError(f"HONEYTRACE_LOG_LEVEL: invalid level {level!r}")
+                raise ConfigError(f"SENTINELS_LOG_LEVEL: invalid level {level!r}")
             self.logging.level = level
-        if "HONEYTRACE_METRICS_PORT" in env:
+        if "SENTINELS_METRICS_PORT" in env:
             try:
-                self.metrics.port = int(env["HONEYTRACE_METRICS_PORT"])
+                self.metrics.port = int(env["SENTINELS_METRICS_PORT"])
             except ValueError as exc:
-                raise ConfigError("HONEYTRACE_METRICS_PORT: must be an integer") from exc
-        if "HONEYTRACE_EVENT_LOG" in env:
-            self.logging.event_log = env["HONEYTRACE_EVENT_LOG"] or None
+                raise ConfigError("SENTINELS_METRICS_PORT: must be an integer") from exc
+        if "SENTINELS_EVENT_LOG" in env:
+            self.logging.event_log = env["SENTINELS_EVENT_LOG"] or None
         return self
 
 

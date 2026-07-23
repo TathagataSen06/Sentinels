@@ -31,44 +31,44 @@ class Metrics:
         self.registry = registry or CollectorRegistry()
 
         self.build_info = Info(
-            "honeytrace_build",
+            "sentinels_build",
             "Static build information for the running node.",
             registry=self.registry,
         )
         self.build_info.info({"version": __version__})
 
         self.connections_total = Counter(
-            "honeytrace_connections_total",
+            "sentinels_connections_total",
             "Total number of connections accepted by decoy services.",
             labelnames=("service", "transport"),
             registry=self.registry,
         )
         self.events_total = Counter(
-            "honeytrace_events_total",
+            "sentinels_events_total",
             "Total number of events emitted, by service and event type.",
             labelnames=("service", "event_type"),
             registry=self.registry,
         )
         self.login_attempts_total = Counter(
-            "honeytrace_login_attempts_total",
+            "sentinels_login_attempts_total",
             "Total number of credential submission attempts observed.",
             labelnames=("service",),
             registry=self.registry,
         )
         self.bytes_received_total = Counter(
-            "honeytrace_bytes_received_total",
+            "sentinels_bytes_received_total",
             "Total number of bytes received from peers.",
             labelnames=("service",),
             registry=self.registry,
         )
         self.rate_limited_total = Counter(
-            "honeytrace_rate_limited_total",
+            "sentinels_rate_limited_total",
             "Total number of connections dropped by the rate limiter.",
             labelnames=("service",),
             registry=self.registry,
         )
         self.active_connections = Gauge(
-            "honeytrace_active_connections",
+            "sentinels_active_connections",
             "Number of currently open peer connections.",
             labelnames=("service",),
             registry=self.registry,

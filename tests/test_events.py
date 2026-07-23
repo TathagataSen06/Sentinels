@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-from honeytrace.events import Event, EventType
+from sentinels.events import Event, EventType
 
 
 def _event(**overrides) -> Event:

@@ -2,9 +2,9 @@
 
 Two logical streams are configured:
 
-* the **application log** (``honeytrace``) for operational messages, and
-* the **event log** (``honeytrace.events``) which receives one JSON document
-  per line for every :class:`~honeytrace.events.Event`.
+* the **application log** (``sentinels``) for operational messages, and
+* the **event log** (``sentinels.events``) which receives one JSON document
+  per line for every :class:`~sentinels.events.Event`.
 
 The event logger does not propagate to the application log so the two streams
 never interleave, and both support size-based rotation.
@@ -18,8 +18,8 @@ from pathlib import Path
 
 from .config import LoggingConfig
 
-APP_LOGGER = "honeytrace"
-EVENT_LOGGER = "honeytrace.events"
+APP_LOGGER = "sentinels"
+EVENT_LOGGER = "sentinels.events"
 
 
 def _ensure_parent(path: str) -> None:

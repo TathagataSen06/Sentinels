@@ -6,11 +6,11 @@ import textwrap
 
 import pytest
 
-from honeytrace.config import Config, ConfigError, load_config
+from sentinels.config import Config, ConfigError, load_config
 
 
 def _write(tmp_path, text: str):
-    path = tmp_path / "honeytrace.yml"
+    path = tmp_path / "sentinels.yml"
     path.write_text(textwrap.dedent(text), encoding="utf-8")
     return path
 
@@ -26,7 +26,7 @@ def test_defaults_are_applied(tmp_path):
         """,
     )
     config = load_config(path, apply_env=False)
-    assert config.node_id == "honeytrace"
+    assert config.node_id == "sentinels"
     assert config.metrics.port == 9101
     assert config.logging.level == "INFO"
     assert len(config.services) == 1
@@ -142,10 +142,10 @@ def test_env_overrides_applied():
     config = Config()
     config.apply_env_overrides(
         {
-            "HONEYTRACE_NODE_ID": "edge-1",
-            "HONEYTRACE_LOG_LEVEL": "debug",
-            "HONEYTRACE_METRICS_PORT": "9200",
-            "HONEYTRACE_EVENT_LOG": "/tmp/events.log",
+            "SENTINELS_NODE_ID": "edge-1",
+            "SENTINELS_LOG_LEVEL": "debug",
+            "SENTINELS_METRICS_PORT": "9200",
+            "SENTINELS_EVENT_LOG": "/tmp/events.log",
         }
     )
     assert config.node_id == "edge-1"
@@ -157,4 +157,4 @@ def test_env_overrides_applied():
 def test_env_override_invalid_metrics_port():
     config = Config()
     with pytest.raises(ConfigError, match="must be an integer"):
-        config.apply_env_overrides({"HONEYTRACE_METRICS_PORT": "not-a-number"})
+        config.apply_env_overrides({"SENTINELS_METRICS_PORT": "not-a-number"})

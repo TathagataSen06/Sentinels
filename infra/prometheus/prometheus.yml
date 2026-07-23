@@ -3,11 +3,11 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
-  - job_name: honeytrace
+  - job_name: sentinels
     static_configs:
-      - targets: ["honeytrace:9101"]
+      - targets: ["sentinels:9101"]
         labels:
-          service: honeytrace
+          service: sentinels
 
   - job_name: prometheus
     static_configs:

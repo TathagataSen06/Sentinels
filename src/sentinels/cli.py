@@ -17,22 +17,22 @@ from pathlib import Path
 from . import __version__
 from .config import Config, ConfigError, load_config
 from .logging_setup import configure_logging, get_app_logger
-from .server import HoneytraceServer
+from .server import SentinelsServer
 from .services import available_types
 
 _DEFAULT_CONFIG_PATHS = (
-    "config/honeytrace.yml",
-    "/etc/honeytrace/honeytrace.yml",
+    "config/sentinels.yml",
+    "/etc/sentinels/sentinels.yml",
 )
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="honeytrace",
-        description="Honeytrace — a high-signal honeypot framework.",
+        prog="sentinels",
+        description="Sentinels — a high-signal honeypot framework.",
     )
     parser.add_argument(
-        "--version", action="version", version=f"honeytrace {__version__}"
+        "--version", action="version", version=f"sentinels {__version__}"
     )
     sub = parser.add_subparsers(dest="command")
 
@@ -55,7 +55,7 @@ def resolve_config_path(explicit: str | None) -> Path:
     """Determine which configuration file to use."""
     if explicit:
         return Path(explicit)
-    env = os.environ.get("HONEYTRACE_CONFIG")
+    env = os.environ.get("SENTINELS_CONFIG")
     if env:
         return Path(env)
     for candidate in _DEFAULT_CONFIG_PATHS:
@@ -79,7 +79,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
     configure_logging(config.logging)
     logger = get_app_logger()
     logger.info("loaded configuration for node %r", config.node_id)
-    return HoneytraceServer(config).serve()
+    return SentinelsServer(config).serve()
 
 
 def _cmd_validate(args: argparse.Namespace) -> int:

@@ -1,19 +1,19 @@
-# Honeytrace configuration.
+# Sentinels configuration.
 #
 # Ports below are the *container-internal* ports the services bind to. The
 # provided docker-compose.yml maps the real, low-numbered host ports
 # (22, 23, 21, 80, ...) onto these, so the node listens as an unprivileged
 # user inside the container. Adjust to taste.
 
-node_id: honeytrace-01
+node_id: sentinels-01
 
 logging:
   level: INFO
   console: true
   # Structured, one-JSON-document-per-line event stream for ingestion.
-  event_log: /var/log/honeytrace/events.log
+  event_log: /var/log/sentinels/events.log
   # Operational/application log.
-  app_log: /var/log/honeytrace/honeytrace.log
+  app_log: /var/log/sentinels/sentinels.log
   rotate_max_bytes: 10485760   # 10 MiB
   rotate_backups: 5
 

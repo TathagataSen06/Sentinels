@@ -6,12 +6,12 @@ import asyncio
 import base64
 from contextlib import asynccontextmanager
 
-from honeytrace.config import LimitsConfig, ServiceConfig
-from honeytrace.events import EventType
-from honeytrace.metrics import Metrics
-from honeytrace.ratelimit import RateLimiter
-from honeytrace.services import BaseService, ServiceContext, create_service
-from honeytrace.sinks import ListEventSink
+from sentinels.config import LimitsConfig, ServiceConfig
+from sentinels.events import EventType
+from sentinels.metrics import Metrics
+from sentinels.ratelimit import RateLimiter
+from sentinels.services import BaseService, ServiceContext, create_service
+from sentinels.sinks import ListEventSink
 
 
 @asynccontextmanager
@@ -77,7 +77,7 @@ async def test_telnet_captures_credentials():
         assert event.data["password"] == "hunter2"
         assert (
             metrics.registry.get_sample_value(
-                "honeytrace_login_attempts_total", {"service": "telnet"}
+                "sentinels_login_attempts_total", {"service": "telnet"}
             )
             == 1
         )
@@ -197,7 +197,7 @@ async def test_connection_lifecycle_events_and_metrics():
         assert closed is not None
         assert (
             metrics.registry.get_sample_value(
-                "honeytrace_connections_total",
+                "sentinels_connections_total",
                 {"service": "ssh", "transport": "tcp"},
             )
             == 1
@@ -218,7 +218,7 @@ async def test_rate_limited_connection_is_dropped():
         assert event is not None
         assert (
             metrics.registry.get_sample_value(
-                "honeytrace_rate_limited_total", {"service": "ssh"}
+                "sentinels_rate_limited_total", {"service": "ssh"}
             )
             == 1
         )

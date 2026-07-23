@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from honeytrace.ratelimit import RateLimiter
+from sentinels.ratelimit import RateLimiter
 
 
 class FakeClock:
